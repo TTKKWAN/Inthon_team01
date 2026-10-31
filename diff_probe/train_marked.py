@@ -43,6 +43,7 @@ from sim_valsets import merge_edits  # noqa: E402
 RANK_SCORE = [1.0, 0.5, 0.25, 0.125, 0.0]
 KEEP = ["antonym", "spatial", "attribute", "order", "append_plausible", "drop_corrupt"]
 FALLBACK = ["object", "append_unrelated", "replace_clause"]
+MARKS = {"mode": "slots"}  # "slots": same places marked in every choice; "ref": old scheme
 EVAL_SETS = ["short/H1_disjoint", "short/H2_samespot", "short/H6_fact_a_b_ab_c",
              "short/H7_fact_a_b_ab_ac", "full/H1_disjoint", "full/H5_mix"]
 
@@ -190,7 +191,7 @@ def pad_frames(list_of_frames, device, reverse=False):
 def step_loss(model, text_enc, batch, device, n_other=3, w_video=1.0):
     b = len(batch)
     texts = [t for s in batch for t in s["texts"]]
-    spans = [sp for s in batch for sp in mark_spans(s["texts"])]
+    spans = [sp for s in batch for sp in mark_spans(s["texts"], MARKS["mode"])]
     h, tm, mk = text_enc(texts, spans)
     frames = [s["frames"] for s in batch]
     fx, fm = pad_frames(frames, device)
@@ -234,7 +235,7 @@ def evaluate(model, text_enc, rows, frames, device, condition="normal", seed=0, 
             rng.shuffle(ch)
             t = [c["text"] for c in ch]
             texts += t
-            spans += mark_spans(t)
+            spans += mark_spans(t, MARKS["mode"])
             labels.append(next(i for i, c in enumerate(ch) if c["type"] == "pos"))
             cents.append(score_span(t))
             ep = r["episode"]
@@ -275,9 +276,11 @@ def main():
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--max-steps", type=int, default=0, help="debug: stop after N steps")
+    ap.add_argument("--marks", choices=["slots", "ref"], default="slots")
     ap.add_argument("--eval-limit", type=int, default=0, help="debug: episodes per val set")
     args = ap.parse_args()
 
+    MARKS["mode"] = args.marks
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     args.out.mkdir(parents=True, exist_ok=True)

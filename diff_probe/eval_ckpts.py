@@ -20,7 +20,7 @@ import torch
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
-from train_marked import Frames, MarkedVerifier, TextEncoder, evaluate  # noqa: E402
+from train_marked import MARKS, Frames, MarkedVerifier, TextEncoder, evaluate  # noqa: E402
 
 SETS = ["short/H1_disjoint", "short/H2_samespot", "short/H3_multi", "short/H4_chain",
         "short/H5_mix", "short/H6_fact_a_b_ab_c", "short/H7_fact_a_b_ab_ac", "full/H5_mix"]
@@ -49,7 +49,10 @@ def main():
     ap.add_argument("--text-model", default=str(HERE / "models/mpnet"))
     ap.add_argument("--max-frames", type=int, default=16)
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--marks", choices=["slots", "ref"], default="slots",
+                    help="must match the run (marked_v1 was trained with ref)")
     args = ap.parse_args()
+    MARKS["mode"] = args.marks
 
     valsets = json.loads(args.valsets.read_text())["sets"]
     valsets = {k: valsets[k] for k in SETS}

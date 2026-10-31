@@ -13,6 +13,7 @@ import difflib
 import re
 
 from centrality import score_span
+from spots import _boundary_map, _edits, _left_map, _opcodes
 
 _WORD = re.compile(r"\S+")
 _KEY = re.compile(r"[^a-z0-9']+")
@@ -43,7 +44,40 @@ def _mark_pair(ref, other):
     return {i for i in mr if i < len(ref)}, {j for j in mo if j < len(other)}
 
 
-def mark_spans(texts):
+def mark_slots(texts):
+    """Every place where the choices disagree is marked in EVERY choice, so all choices
+    are scored on the same places ("buttoning"/"unbuttoning" and "shirt."/"shirt and then
+    sits down on it." in all four). An insertion belongs to the word before it."""
+    words = [_words(t) for t in texts]
+    scores = score_span(texts)
+    ref_i = max(range(len(texts)), key=lambda i: scores[i])
+    ref = [t.split() for t in texts][ref_i]
+    toks = [t.split() for t in texts]
+    aligned = [_opcodes(ref, t) for t in toks]
+    intervals = sorted(((s - 1, s) if s == e and s > 0 else (s, max(e, 1)) if s == e else (s, e))
+                       for t, ops in zip(toks, aligned) for s, e in _edits(ref, t, ops))
+    slots = []
+    for s, e in intervals:
+        if slots and (s < slots[-1][1] or s == slots[-1][0]):
+            slots[-1] = (slots[-1][0], max(slots[-1][1], e))
+        else:
+            slots.append((s, e))
+    out = []
+    for w, ops in zip(words, aligned):
+        lm, rm = _left_map(ops), _boundary_map(ops)
+        idx = sorted({k for s, e in slots for k in range(lm[s], rm[e])})
+        if not idx and slots:  # this choice has nothing at a slot (e.g. a dropped clause)
+            idx = sorted({max(lm[s] - 1, 0) for s, _ in slots})
+        out.append([(w[k][0], w[k][1]) for k in idx if k < len(w)])
+    return out
+
+
+def mark_spans(texts, mode="slots"):
+    return mark_slots(texts) if mode == "slots" else mark_ref(texts)
+
+
+def mark_ref(texts):
+    """Previous scheme: each choice marks only where it differs from the reference."""
     words = [_words(t) for t in texts]
     scores = score_span(texts)
     ref = max(range(len(texts)), key=lambda i: scores[i])
