@@ -232,7 +232,10 @@ def main():
         cfg["epochs"] = args.epochs
     for item in args.set:
         key, value = item.split("=", 1)
-        cfg[key] = json.loads(value)
+        try:
+            cfg[key] = json.loads(value)
+        except json.JSONDecodeError:  # bare strings such as paths
+            cfg[key] = value
     texts_suffix = args.suffix if args.texts_suffix is None else args.texts_suffix
     cfg["texts_cache"] = f"texts{texts_suffix}.pt"
     out = args.output_dir or base / cfg["output_dir"]
@@ -260,8 +263,29 @@ def main():
 
     model_config = {"frame_dim": data.frames.shape[2], "text_dim": data.full.shape[1],
                     "d_model": cfg["d_model"], "layers": cfg["layers"],
-                    "heads": cfg["heads"], "dropout": cfg["dropout"]}
+                    "heads": cfg["heads"], "dropout": cfg["dropout"],
+                    "align_norm": cfg.get("align_norm", False),
+                    "use_matcher": bool(cfg.get("matcher_ckpt") or cfg.get("matcher_dir"))}
+    folds = None
+    if cfg.get("matcher_dir"):
+        # "add" mode with out-of-fold matchers (train_align.py --folds K --exclude-fold k)
+        # plus the full matcher (matcher.pt) last, which validation / inference use.
+        k = cfg.get("matcher_folds", 3)
+        model_config.update({"matcher_mode": "add", "n_matchers": k + 1})
+        mdir = base / cfg["matcher_dir"]
+        folds = json.loads((mdir / "folds.json").read_text(encoding="utf-8"))
     model = OrderAwareScorer(**model_config).to(device)
+    if folds is not None:
+        for g, name in enumerate([f"matcher_fold{f}.pt" for f in range(k)] + ["matcher.pt"]):
+            ckpt = torch.load(mdir / name, map_location="cpu", weights_only=False)
+            model.matchers[g].load_state_dict(ckpt["state_dict"])
+        model.matchers.requires_grad_(False)
+    if cfg.get("matcher_ckpt"):
+        # Pretrained ClipMatcher (train_align.py); frozen by default so the scorer cannot
+        # bend the alignment towards text artifacts.
+        ckpt = torch.load(base / cfg["matcher_ckpt"], map_location="cpu", weights_only=False)
+        model.matcher.load_state_dict(ckpt["state_dict"])
+        model.matcher.requires_grad_(not cfg.get("freeze_matcher", True))
     run = None
     if args.wandb:
         import wandb
@@ -290,7 +314,11 @@ def main():
             target0 = torch.zeros(len(idx), dtype=torch.long, device=device)
             rows = train_rows(data, idx, train, cfg, rng)
             inputs = data.batch(rows, frame_views(data, idx, cfg, rng))
-            logits = model(*inputs).view(len(rows), -1)
+            midx = None
+            if folds is not None:  # each video gets the matcher that never trained on it
+                midx = torch.tensor([folds[data.ids[c[0]]] for row in rows for c in row],
+                                    device=device)
+            logits = model(*inputs, matcher_idx=midx).view(len(rows), -1)
             if debias:
                 # Product of experts: the main scorer sees the text-only bias as a fixed
                 # offset, so it gains nothing from re-learning text artifacts.

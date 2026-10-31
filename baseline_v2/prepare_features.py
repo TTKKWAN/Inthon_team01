@@ -87,7 +87,7 @@ def encode_texts(cfg, base, enc, episode_ids, out):
 
     groups = [[{"pos": tid(g["pos"]), "negs": [[k, tid(t)] for k, t in g["negs"]],
                 "variants": [tid(v) for v in g.get("pos_variants", [])]}
-               for g in bank[e]] for e in episode_ids]
+               for g in bank.get(e, [])] for e in episode_ids]  # partial banks: [] elsewhere
     full, clause_flat, offsets = [], [], [0]
     for s in range(0, len(texts), 2048):
         chunk = texts[s:s + 2048]

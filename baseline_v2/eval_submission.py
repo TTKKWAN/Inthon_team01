@@ -2,7 +2,7 @@
 shared 5-way validation set, so any model — starter kit, minimal, v2 — is compared on the
 exact same questions and the exact inference path the server runs.
 
-Questions are the same as train_v2 / eval_runs (valid split of outputs/exp_base, seeds
+Questions are the same as train_v2 / eval_runs (valid split of validation/splits.json, seeds
 2027 / 2028, 1 GT + 4 negatives of distinct types), built from texts.pt; frames are read
 from Train as RGB PIL images in numeric order.
 

@@ -3,6 +3,62 @@
 스타터킷 모델을 **한 줄도 안 바꾸고** 학습 오답만 규칙 기반 hard negative로 바꾸면, 같은 검증 세트에서 0.467 → **0.728**이 된다(`minimal_submission`).
 모델까지 바꾼 v2(SigLIP + 절 단위 순서 인식 scorer)는 **0.861**이다.
 
+**현재 최고 리더보드: v2_matcher = 0.4485** (minimal 0.4260, 찍기 0.375). 아래 "리더보드로 본 테스트 세트"와 "v2_matcher 재현"부터 보면 된다.
+
+## 리더보드로 본 테스트 세트
+
+| 제출물 | 리더보드 (public) | 찍기 대비 | 자체 검증 | 엉뚱한 영상 검증 | 영상 몫 |
+| --- | --- | --- | --- | --- | --- |
+| minimal_submission | 0.4260 | +0.051 | 0.728 | 0.584 | 0.144 |
+| v2_matcher_submission | **0.4485** | **+0.074** | 0.853 | 0.598 | 0.255 |
+
+검증 숫자는 예전 오답 묶음 기준 full/short 평균이다(`results/eval_runs_matcher_oldbank.json`). public은 약 573문제라 표준오차가 약 ±0.0125이고, 두 제출의 차이 +0.0225는 그 약 1.8배다.
+
+두 점만으로 추측할 수 있는 것:
+
+1. **검증에서 얻은 이득 중 약 15%만 테스트로 넘어간다.** "리더보드 − 찍기"를 "검증 − 찍기"로 나누면 두 모델 모두 0.14~0.15다. 우리 검증은 테스트 난이도를 6~7배 과대평가한다.
+2. **넘어가는 몫은 영상 몫(진짜 영상 − 엉뚱한 영상)을 따라간다.** "리더보드 − 찍기"를 영상 몫으로 나누면 0.35 / 0.29다. 텍스트 꼼수로 얻은 점수는 테스트에서 거의 사라지고, 영상을 보고 얻은 점수의 약 1/3이 남는다.
+3. **테스트 오답에는 우리 생성기의 흔적이 없다.** 규칙 기반 오답에서만 통하는 문장 흔적(비문법, 템플릿, 어색한 단어 조합)으로는 점수를 못 얻는다.
+4. **테스트는 우리 오답과 다른 방식, 또는 더 미세한 차이일 가능성이 크다.** 두 모델 모두 검증에서 1위 비율이 40~70%인데, 리더보드 0.43~0.45는 1위 비율이 대략 20~25%라는 뜻이다(나머지가 대부분 2~3위라고 가정).
+5. **영상 쪽 개선은 실제로 효과가 있다.** v2_matcher는 영상 이해(절 시간 정렬, 동작 라벨) 쪽 개선이고, 리더보드도 minimal보다 올랐다. 방향은 맞지만 이득이 크게 줄어든다.
+
+그래서 앞으로는 **검증 점수보다 "엉뚱한 영상 점수가 낮고 영상 몫이 큰" 모델**을 고르고, 오답은 문장 흔적이 적게 만들자. `llm_negatives.py`(로컬 LLM 오답)와 `llm_paraphrase.py`(정답 바꿔 쓰기)가 그 시도이고, 아직 학습에는 반영하지 않았다.
+
+## v2_matcher 재현
+
+v2_matcher = v2 scorer + debias + **학습형 클립 매처(out-of-fold, 추가 방식)** + 버그 수정 오답 묶음.
+
+| 구성 | 내용 | 파일 |
+| --- | --- | --- |
+| 오답 묶음 | `negatives.py` 규칙 기반 9종. `left`(동사 leave) 교체 버그와 `lower`(동사)→`upper` 버그를 고친 버전 | `data/negatives.json` |
+| 클립 매처 | 프레임 특징 + 앞 프레임과의 차이 → 1D conv로 짧은 클립 벡터, 절과 코사인 유사도. 텍스트로는 못 푸는 3가지로 학습: 절 → 자기 영상 찾기, 절 시간 순서, `episode.json` action 라벨 63종(`manifest.json`의 frame_id로 이미지에 연결) | `model_v2.py` `ClipMatcher`, `train_align.py` |
+| out-of-fold | 학습 영상을 3조각으로 나눠 "그 조각을 안 본 매처" 3개 + 전체 매처 1개. scorer 학습 때는 각 영상에 그 영상을 안 본 매처 신호를, 추론에는 전체 매처를 쓴다. 매처가 학습 영상에서만 잘 맞아(순서 93% vs 검증 37%) scorer가 과신하던 문제를 막는다 | `matcher/folds.json` |
+| scorer 연결 | 기존 SigLIP 정렬 신호 3개 옆에 매처 신호 3개를 **추가**(교체하면 0.845 → 0.77~0.80으로 하락). 매처는 scorer 학습 중 고정 | `train_v2.py --set matcher_dir=...` |
+| debias | 학습 때만 텍스트 전용 보조 모델(product-of-experts) | `--set debias_weight=1.0` |
+
+```bash
+cd baseline_v2
+python negatives.py --data-dir ../data/Train --out data/negatives.json        # 커밋된 파일과 같은 내용
+python prepare_features.py --part all                                         # frames.pt, texts.pt
+python train_align.py --output-dir outputs/align_pre                          # 전체 매처 -> matcher.pt
+python train_align.py --output-dir outputs/align_pre --folds 3 --exclude-fold 0
+python train_align.py --output-dir outputs/align_pre --folds 3 --exclude-fold 1
+python train_align.py --output-dir outputs/align_pre --folds 3 --exclude-fold 2
+python train_v2.py --output-dir outputs/matcher_oof --set debias_weight=1.0 matcher_dir=outputs/align_pre
+python export_v2.py --checkpoint outputs/matcher_oof/best.pt --output-dir outputs/v2_matcher_submission
+python check_deps.py outputs/v2_matcher_submission.zip                        # 허용 패키지만 쓰는지
+python eval_submission.py outputs/v2_matcher_submission.zip                   # ZIP 실측 채점
+```
+
+- 매처 학습은 각 40 epoch, 5070 Ti에서 1~2분, scorer는 약 1분이다.
+- `matcher/folds.json`은 `train_align.py --folds 3`이 seed로 다시 만드는 것과 같다(확인용으로 커밋).
+- ZIP 743.8 MiB, 추론 1,910개 예상 약 6분(5070 Ti), 허용 패키지만 사용.
+- 결과 기록: `results/history_matcher_*.json`(oof / frozen / tuned), `results/history_align_pre_full.json`(매처 사전학습), `results/leaderboard.json`.
+
+### 큰 ZIP 옮기기 (`make_bundle.py`, `rebuild_zip.py`)
+
+ZIP의 약 700MB는 공개 인코더다. `make_bundle.py`가 그 부분을 빼고(텐서별 SHA-256과 HF 커밋을 기록) 10~40MB 묶음을 만들고, 받는 쪽에서 `rebuild_zip.py`가 Hugging Face에서 받아 fp16으로 바꾼 뒤 모든 텐서를 대조해서 같은 ZIP을 만든다. torch 없이 `numpy safetensors huggingface_hub`만 있으면 된다.
+
 점수는 대회식이다: 정답 1위 1점, 2위 0.5, 3위 0.25, 4위 0.125, 5위 0. 무작위로 찍으면 0.375.
 
 ## 결과 요약
@@ -16,7 +72,7 @@
 | v2_submission | DINOv2 + SigLIP + MPNet, 순서 인식 scorer | 위와 같음 + 시간 역순 영상 | 0.844 | 0.879 | 0.861 | 71.4% |
 
 - 스타터킷 baseline은 자기 검증(정답 vs random 오답 1개)에서 pair accuracy 95%가 나오지만, 같은 장면을 조금 바꾼 오답 앞에서는 찍기보다 조금 나은 수준이다.
-- **리더보드: minimal_submission = 0.4260** (public, 추론 3분 5초). 자체 검증 0.728보다 훨씬 낮다. 원인은 아래 "텍스트 꼼수".
+- **리더보드: minimal_submission = 0.4260** (public, 추론 3분 5초), **v2_matcher = 0.4485**. 자체 검증보다 훨씬 낮다. 원인은 아래 "텍스트 꼼수".
 
 ## 텍스트 꼼수: 검증은 높은데 리더보드가 낮은 이유
 
@@ -73,6 +129,11 @@ baseline_v2/
 ├── eval_runs.py          # 학습한 run들을 같은 검증 세트로 채점 (캐시 사용)
 ├── eval_submission.py    # 제출 ZIP을 실제 추론 경로로 채점
 ├── check_deps.py         # 제출 ZIP이 채점 환경에 있는 패키지만 쓰는지 확인
+├── train_align.py        # 학습형 클립 매처 사전학습 (--folds/--exclude-fold로 out-of-fold)
+├── matcher/folds.json    # out-of-fold 조각 배정
+├── make_bundle.py, rebuild_zip.py   # 큰 제출 ZIP을 작은 묶음으로 옮기기
+├── llm_negatives.py      # (실험 중) 로컬 LLM Qwen3-4B로 자연스러운 오답 생성
+├── llm_paraphrase.py     # (실험 중) 정답 바꿔 쓰기 + 그 문장에서 오답 생성
 ├── export_val_set.py     # validation/ 파일을 다시 만드는 스크립트
 ├── download_siglip.py
 ├── results/              # 아래 "결과 파일"

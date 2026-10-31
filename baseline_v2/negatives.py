@@ -109,6 +109,9 @@ def build_verb_map():
 
 
 VERB_MAP = build_verb_map()
+# "left" is far more often the direction ("on the left") than the past of "leave";
+# swapping it produced "on the entered".
+VERB_MAP.pop("left", None)
 # Base forms collide with nouns/adjectives (a "close" call, "lower" shelf), so a bare
 # base form is only swapped right after a subject-like word.
 BASE_FORMS = {inflect(v)[0] for pair in VERB_PAIRS for v in pair}
@@ -158,6 +161,15 @@ def pair_table(pairs):
 
 
 SPATIAL_TABLE = pair_table(SPATIAL_PAIRS)
+_ADJ_SLOT = re.compile(r"\b(?:the|its|their|his|her|a|an)\s+$", re.I)
+
+
+def spatial_context_ok(text, span, src):
+    """'lower'/'upper' are spatial only as adjectives ("its lower edge"); otherwise
+    "lower it again" (the verb) would become "upper it again"."""
+    if src not in ("lower", "upper"):
+        return True
+    return bool(_ADJ_SLOT.search(text[:span[0]]))
 
 # ---- clause segmentation (lossless, so clauses can be moved and re-joined) --------
 
@@ -250,7 +262,7 @@ class Maker:
         return swap_from_table(text, VERB_MAP, self.rng, verb_context_ok)
 
     def spatial(self, text):
-        return swap_from_table(text, SPATIAL_TABLE, self.rng)
+        return swap_from_table(text, SPATIAL_TABLE, self.rng, spatial_context_ok)
 
     def attribute(self, text):
         table = {c: [x for x in COLORS if x != c] for c in COLORS}

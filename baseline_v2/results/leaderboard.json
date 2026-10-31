@@ -1,0 +1,7 @@
+﻿{"public_leaderboard": [
+  {"submission": "minimal_submission", "score": 0.4260, "inference_time": "3:05",
+   "note": "starter MLP + rule-based hard negatives"},
+  {"submission": "v2_matcher_submission", "score": 0.4485,
+   "note": "v2 scorer + debias + out-of-fold clip matcher, fixed negative bank"}],
+ "chance_level": 0.375,
+ "public_episodes_approx": 573}

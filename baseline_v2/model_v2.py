@@ -49,13 +49,28 @@ def split_clauses(text, max_clauses=MAX_CLAUSES):
 
 class OrderAwareScorer(nn.Module):
     def __init__(self, frame_dim=2304, text_dim=1536, d_model=256, layers=2,
-                 heads=4, dropout=0.1):
+                 heads=4, dropout=0.1, align_norm=False, use_matcher=False,
+                 matcher_mode="replace", n_matchers=1):
         super().__init__()
+        # Learned clause <-> clip matcher (pretrained by train_align.py).
+        #   replace: its similarity replaces frozen SigLIP in the alignment signal.
+        #   add:     SigLIP signal is kept and 3 matcher features are appended. n_matchers
+        #            = out-of-fold matchers + 1 full matcher (the last one, used at
+        #            inference); during training each video uses the matcher that never
+        #            saw it, so the scorer learns how much to trust it on unseen videos.
+        add = use_matcher and matcher_mode == "add"
+        self.matcher = ClipMatcher(frame_dim, text_dim) if use_matcher and not add else None
+        self.matchers = (nn.ModuleList(ClipMatcher(frame_dim, text_dim)
+                                       for _ in range(n_matchers)) if add else None)
         self.frame_proj = nn.Sequential(nn.LayerNorm(frame_dim), nn.Linear(frame_dim, d_model))
         self.text_proj = nn.Sequential(nn.LayerNorm(text_dim), nn.Linear(text_dim, d_model))
-        self.align_proj = nn.Linear(3, d_model)
+        self.align_proj = nn.Linear(6 if add else 3, d_model)
         self.summary_proj = nn.Linear(4, d_model)
-        self.align_scale = nn.Parameter(torch.tensor(20.0))
+        # Raw SigLIP clause x frame similarities differ by only ~0.02-0.05 within a clause,
+        # so a softmax over them is nearly flat and every clause lands at time ~0.5.
+        # align_norm z-scores each clause's row over the valid frames first.
+        self.align_norm = align_norm
+        self.align_scale = nn.Parameter(torch.tensor(3.0 if align_norm else 20.0))
         self.cls = nn.Parameter(torch.zeros(1, 1, d_model))
         self.frame_pos = nn.Embedding(MAX_FRAMES, d_model)
         self.clause_pos = nn.Embedding(MAX_CLAUSES, d_model)
@@ -73,13 +88,49 @@ class OrderAwareScorer(nn.Module):
         span = (lengths.float() - 1).clamp_min(1).unsqueeze(1)
         return (idx / span * (MAX_FRAMES - 1)).round().long().clamp(0, MAX_FRAMES - 1)
 
-    def alignment(self, frames, frame_mask, clauses, lengths):
-        """[B,K,3]: soft time position in [0,1], max sim, and position rank gap to previous."""
+    def alignment(self, frames, frame_mask, clauses, lengths, matcher_idx=None):
+        """[B,K,3] (or 6 with added matchers): soft time position in [0,1], max sim,
+        and position gap to the previous clause."""
+        base = self._alignment(frames, frame_mask, clauses, lengths)
+        if self.matchers is None:
+            return base
+        if matcher_idx is None:  # inference / validation: the full matcher
+            matcher_idx = torch.full((len(frames),), len(self.matchers) - 1,
+                                     dtype=torch.long, device=frames.device)
+        extra = torch.zeros_like(base)
+        rel = torch.arange(frames.shape[1], device=frames.device).float().unsqueeze(0)
+        rel = rel / (lengths.float() - 1).clamp_min(1).unsqueeze(1)
+        for g in matcher_idx.unique().tolist():
+            rows = matcher_idx == g
+            m = self.matchers[g]
+            sim = m.similarity(clauses[rows], frames[rows], frame_mask[rows])
+            pos = torch.einsum("bkt,bt->bk", (sim * m.logit_scale.exp()).softmax(-1), rel[rows])
+            gap = pos - torch.cat([torch.zeros_like(pos[:, :1]), pos[:, :-1]], dim=1)
+            extra[rows] = torch.stack([pos, sim.max(-1).values, gap], dim=-1)
+        return torch.cat([base, extra], dim=-1)
+
+    def _alignment(self, frames, frame_mask, clauses, lengths):
+        valid = frame_mask.unsqueeze(1)
+        if self.matcher is not None:
+            sim = self.matcher.similarity(clauses, frames, frame_mask)
+            attn = (sim * self.matcher.logit_scale.exp()).softmax(-1)
+            rel = torch.arange(frames.shape[1], device=frames.device).float().unsqueeze(0)
+            rel = rel / (lengths.float() - 1).clamp_min(1).unsqueeze(1)
+            pos = torch.einsum("bkt,bt->bk", attn, rel)
+            gap = pos - torch.cat([torch.zeros_like(pos[:, :1]), pos[:, :-1]], dim=1)
+            return torch.stack([pos, sim.max(-1).values, gap], dim=-1)
         v = F.normalize(frames[..., -SIGLIP_DIM:], dim=-1)
         c = F.normalize(clauses[..., -SIGLIP_DIM:], dim=-1)
         sim = torch.einsum("bkd,btd->bkt", c, v)
-        sim = sim.masked_fill(~frame_mask.unsqueeze(1), -1e4)
-        attn = (sim * self.align_scale).softmax(-1)
+        logits = sim
+        if self.align_norm:
+            m = valid.float()
+            count = m.sum(-1, keepdim=True).clamp_min(1)
+            mean = (sim * m).sum(-1, keepdim=True) / count
+            std = (((sim - mean) * m) ** 2).sum(-1, keepdim=True).div(count).sqrt()
+            logits = (sim - mean) / (std + 1e-4)
+        sim = sim.masked_fill(~valid, -1e4)
+        attn = (logits.masked_fill(~valid, -1e4) * self.align_scale).softmax(-1)
         rel = torch.arange(frames.shape[1], device=frames.device).float().unsqueeze(0)
         rel = rel / (lengths.float() - 1).clamp_min(1).unsqueeze(1)
         pos = torch.einsum("bkt,bt->bk", attn, rel)
@@ -98,7 +149,7 @@ class OrderAwareScorer(nn.Module):
         backward = (torch.relu(-align[..., 2]) * m).sum(1)
         return torch.stack([weakest, mean, backward, m.sum(1) / MAX_CLAUSES], dim=-1)
 
-    def forward(self, frames, frame_mask, full_text, clauses, clause_mask):
+    def forward(self, frames, frame_mask, full_text, clauses, clause_mask, matcher_idx=None):
         """frames [B,T,F], frame_mask [B,T] (True=valid), full_text [B,D],
         clauses [B,K,D], clause_mask [B,K]. Returns logits [B]."""
         b, t, _ = frames.shape
@@ -109,7 +160,7 @@ class OrderAwareScorer(nn.Module):
         pos = self.frame_positions(lengths, t, device)
         v = self.frame_proj(frames) + self.frame_pos(pos) + types[1]
         full = self.text_proj(full_text).unsqueeze(1) + types[2]
-        align = self.alignment(frames, frame_mask, clauses, lengths)
+        align = self.alignment(frames, frame_mask, clauses, lengths, matcher_idx)
         c = (self.text_proj(clauses) + types[3]
              + self.clause_pos(torch.arange(k, device=device)).unsqueeze(0)
              + self.align_proj(align))
@@ -120,6 +171,46 @@ class OrderAwareScorer(nn.Module):
         valid = torch.cat([one, frame_mask, one, clause_mask], dim=1)
         out = self.encoder(tokens, src_key_padding_mask=~valid)
         return self.head(out[:, 0]).squeeze(-1)
+
+
+class ClipMatcher(nn.Module):
+    """Learned clause <-> short-clip matcher on top of the frozen frame features.
+
+    Frozen SigLIP cannot place clauses in time here (scenes barely change and it sees
+    objects, not actions). This turns every frame into a clip vector from its neighbours
+    and the frame-to-frame change (what happened, not what is there), and maps clauses
+    into the same space. Trained by train_align.py with signals the text alone cannot
+    solve: clause -> own video vs other videos, clause peaks in time order, and the
+    per-frame action labels of episode.json.
+    """
+
+    def __init__(self, frame_dim=2304, text_dim=1536, d=256, n_actions=63):
+        super().__init__()
+        self.inp = nn.Sequential(nn.LayerNorm(frame_dim * 2), nn.Linear(frame_dim * 2, d))
+        self.temporal = nn.Sequential(nn.Conv1d(d, d, 3, padding=1), nn.GELU(),
+                                      nn.Conv1d(d, d, 3, padding=1))
+        self.text = nn.Sequential(nn.LayerNorm(text_dim), nn.Linear(text_dim, d), nn.GELU(),
+                                  nn.Linear(d, d))
+        self.action_head = nn.Linear(d, n_actions)
+        self.logit_scale = nn.Parameter(torch.tensor(2.3))  # exp -> ~10
+
+    def clips(self, frames, frame_mask):
+        """[B,T,F] -> (normalized clip vectors [B,T,d], raw clip features [B,T,d])."""
+        m = frame_mask.unsqueeze(-1).float()
+        frames = frames * m
+        delta = frames - torch.cat([frames[:, :1], frames[:, :-1]], dim=1)
+        x = self.inp(torch.cat([frames, delta * m], dim=-1)) * m
+        x = x + self.temporal(x.transpose(1, 2)).transpose(1, 2) * m
+        return F.normalize(x, dim=-1), x
+
+    def clause_vectors(self, clauses):
+        return F.normalize(self.text(clauses), dim=-1)
+
+    def similarity(self, clauses, frames, frame_mask):
+        """Own-video clause x clip similarity [B,K,T] (cosine, padded frames = -inf)."""
+        clip, _ = self.clips(frames, frame_mask)
+        sim = torch.einsum("bkd,btd->bkt", self.clause_vectors(clauses), clip)
+        return sim.masked_fill(~frame_mask.unsqueeze(1), -1e4)
 
 
 def _load(model_dir, dtype=torch.float32):
