@@ -23,3 +23,9 @@ __pycache__/
 # baseline_v2 local artifacts (features cache, runs)
 baseline_v2/cache/
 baseline_v2/outputs/
+
+# TemporalBench (MSR license, eval-only): videos, frames, sets and the dataset card stay out of git
+external_eval/temporalbench/*
+!external_eval/temporalbench/*.py
+!external_eval/temporalbench/README.md
+!external_eval/temporalbench/results/
