@@ -1,0 +1,65 @@
+[
+  {
+    "type": "order",
+    "seen": 0.9574,
+    "unseen": 0.8865,
+    "full_lb": 0.8230830670926518,
+    "short_lb": 0.8714057507987221
+  },
+  {
+    "type": "antonym",
+    "seen": 0.8845,
+    "unseen": 0.6787,
+    "full_lb": 0.7975239616613419,
+    "short_lb": 0.8318690095846646
+  },
+  {
+    "type": "spatial",
+    "seen": 0.7891,
+    "unseen": 0.6945,
+    "full_lb": 0.8228833865814696,
+    "short_lb": 0.8430511182108626
+  },
+  {
+    "type": "attribute",
+    "seen": 0.8597,
+    "unseen": 0.8201,
+    "full_lb": 0.8330670926517572,
+    "short_lb": 0.8710063897763578
+  },
+  {
+    "type": "object",
+    "seen": 0.9108,
+    "unseen": 0.8848,
+    "full_lb": 0.8336661341853036,
+    "short_lb": 0.8544329073482428
+  },
+  {
+    "type": "append_unrelated",
+    "seen": 0.9663,
+    "unseen": 0.8015,
+    "full_lb": 0.8152955271565495,
+    "short_lb": 0.8746006389776357
+  },
+  {
+    "type": "append_plausible",
+    "seen": 1.0,
+    "unseen": 0.894,
+    "full_lb": 0.8101038338658147,
+    "short_lb": 0.8316693290734825
+  },
+  {
+    "type": "replace_clause",
+    "seen": 0.951,
+    "unseen": 0.9406,
+    "full_lb": 0.8380591054313099,
+    "short_lb": 0.8789936102236422
+  },
+  {
+    "type": "drop_corrupt",
+    "seen": 0.9129,
+    "unseen": 0.6411,
+    "full_lb": 0.7823482428115016,
+    "short_lb": 0.8751996805111821
+  }
+]

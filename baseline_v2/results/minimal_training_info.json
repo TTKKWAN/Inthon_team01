@@ -1,0 +1,13 @@
+{
+  "image_model_id": "facebook/dinov2-base",
+  "text_model_id": "sentence-transformers/all-mpnet-base-v2",
+  "negative_sampling": "hard: GT + 8 rule-based hard negatives (negatives.py) + 3 random other GTs, listwise cross-entropy",
+  "epoch": 38,
+  "metrics": {
+    "val_mean_lb": 0.728,
+    "val_full_lb": 0.6528,
+    "val_short_lb": 0.8033
+  },
+  "encoder_storage_dtype": "float16",
+  "note": "Encoder weights are stored in float16; CPU inference casts them to float32."
+}

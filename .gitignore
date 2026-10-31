@@ -18,3 +18,7 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 .env
+
+# baseline_v2 local artifacts (features cache, runs)
+baseline_v2/cache/
+baseline_v2/outputs/
