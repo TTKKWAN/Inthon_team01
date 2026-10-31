@@ -134,9 +134,30 @@ def find_atoms(texts, context=4):
     return {"reference": ref_idx, "centrality": scores, "spots": spots}
 
 
+def find_joint(texts, context=4):
+    """One question per episode: each choice is shown only by its windows at the places
+    where the choices differ, joined with ' … ' (merged windows, in text order)."""
+    out = find_spots(texts, context, mode="merged")
+    spots = out["spots"]
+    if not spots:
+        return out
+    rendered = [" … ".join(s["variants"][s["choice_variant"][i]] for s in spots)
+                for i in range(len(texts))]
+    readings, choice_variant = [], []
+    for r in rendered:
+        if r not in readings:
+            readings.append(r)
+        choice_variant.append(readings.index(r))
+    out["spots"] = [{"span": [spots[0]["span"][0], spots[-1]["span"][1]],
+                     "variants": readings, "choice_variant": choice_variant}]
+    return out
+
+
 def find_spots(texts, context=4, mode="merged"):
     if mode == "atoms":
         return find_atoms(texts, context)
+    if mode == "joint":
+        return find_joint(texts, context)
     scores = score_span(texts)
     ref_idx = max(range(len(texts)), key=lambda i: scores[i])
     ref = texts[ref_idx].split()
