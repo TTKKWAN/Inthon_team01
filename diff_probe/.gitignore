@@ -1,3 +1,5 @@
 valsets.json
 models/
+runs/
+results/
 __pycache__/
