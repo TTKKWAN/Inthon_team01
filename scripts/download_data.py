@@ -54,7 +54,7 @@ def main():
             tar.extractall(args.out_dir, filter="data")
         else:  # Python < 3.11.4
             tar.extractall(args.out_dir)
-    episodes = sum(1 for p in target.iterdir() if p.name.startswith("episode_"))
+    episodes = sum(1 for p in target.iterdir() if p.is_dir() and p.name.startswith("episode_"))
     print(f"Extracted {episodes} episodes to {target}")
 
     if not args.keep_archive:
