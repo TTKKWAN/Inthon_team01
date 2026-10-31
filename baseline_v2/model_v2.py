@@ -46,9 +46,15 @@ def split_clauses(text, max_clauses=MAX_CLAUSES):
     return parts
 
 
+def pick_device():
+    if torch.cuda.is_available():
+        return "cuda:0"
+    return "mps" if torch.backends.mps.is_available() else "cpu"
+
+
 class OrderAwareScorer(nn.Module):
     def __init__(self, frame_dim=2304, text_dim=1536, d_model=256, layers=2,
-                 heads=4, dropout=0.1):
+                 heads=4, dropout=0.1, max_clauses=MAX_CLAUSES):
         super().__init__()
         self.frame_proj = nn.Sequential(nn.LayerNorm(frame_dim), nn.Linear(frame_dim, d_model))
         self.text_proj = nn.Sequential(nn.LayerNorm(text_dim), nn.Linear(text_dim, d_model))
@@ -57,7 +63,7 @@ class OrderAwareScorer(nn.Module):
         self.align_scale = nn.Parameter(torch.tensor(20.0))
         self.cls = nn.Parameter(torch.zeros(1, 1, d_model))
         self.frame_pos = nn.Embedding(MAX_FRAMES, d_model)
-        self.clause_pos = nn.Embedding(MAX_CLAUSES, d_model)
+        self.clause_pos = nn.Embedding(max_clauses, d_model)
         # 0 = cls, 1 = frame, 2 = full text, 3 = clause
         self.type_emb = nn.Embedding(4, d_model)
         block = nn.TransformerEncoderLayer(d_model, heads, d_model * 4, dropout,
@@ -139,10 +145,18 @@ def load_siglip_tokenizer(model_dir):
 
 class FrozenEncoders:
     def __init__(self, image_model_dir, text_model_dir, siglip_model_dir, device="cpu",
-                 image_batch_size=32, text_batch_size=64):
+                 image_batch_size=32, text_batch_size=64, clause_lexicon=None,
+                 max_clauses=MAX_CLAUSES):
         self.device = torch.device(device)
         self.image_batch_size = image_batch_size
         self.text_batch_size = text_batch_size
+        # clause_lexicon: verb lexicon JSON for the clause_split event segmenter; without it
+        # the original split_clauses rules are used.
+        if clause_lexicon:
+            from clause_split import Segmenter
+            self.split = Segmenter.from_json(clause_lexicon, max_pieces=max_clauses).texts
+        else:
+            self.split = lambda text: split_clauses(text, max_clauses)
         self.dino_processor = AutoImageProcessor.from_pretrained(
             image_model_dir, local_files_only=True, use_fast=False)
         self.siglip_processor = AutoImageProcessor.from_pretrained(
@@ -157,7 +171,7 @@ class FrozenEncoders:
                                       (self.siglip, "siglip", SIGLIP_MODEL_ID)]:
             if model.config.model_type != kind:
                 raise ValueError(f"Use the allowed model: {model_id}")
-        self.dtype = torch.float16 if self.device.type == "cuda" else torch.float32
+        self.dtype = torch.float16 if self.device.type in ("cuda", "mps") else torch.float32
         for model in (self.image_model, self.text_model, self.siglip):
             model.requires_grad_(False).to(device=self.device, dtype=self.dtype).eval()
 
@@ -208,7 +222,7 @@ class FrozenEncoders:
 
     def encode_descriptions(self, texts):
         """Returns (full [N,1536], clauses [N,K,1536], clause_mask [N,K])."""
-        clause_lists = [split_clauses(t) for t in texts]
+        clause_lists = [self.split(t) for t in texts]
         flat = [c for cl in clause_lists for c in cl]
         clause_emb = torch.cat([self.encode_mpnet(flat), self.encode_siglip_text(flat)], dim=-1)
         full_mpnet = self.encode_mpnet(list(texts))

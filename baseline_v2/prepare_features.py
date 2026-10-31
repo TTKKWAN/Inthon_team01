@@ -19,7 +19,7 @@ import torch
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
-from model_v2 import FrozenEncoders
+from model_v2 import FrozenEncoders, pick_device
 
 ROOT = Path(__file__).resolve().parent
 
@@ -111,6 +111,8 @@ def main():
     parser.add_argument("--suffix", default="", help="e.g. _smoke -> cache/frames_smoke.pt")
     parser.add_argument("--texts-suffix", help="texts cache suffix if different from --suffix")
     parser.add_argument("--bank", help="negative bank path (relative to config), overrides config")
+    parser.add_argument("--clause-lexicon",
+                        help="clause_split lexicon JSON (relative to config); default: split_clauses")
     args = parser.parse_args()
     cfg = json.loads(args.config.read_text(encoding="utf-8"))
     base = args.config.resolve().parent
@@ -124,9 +126,11 @@ def main():
     for path, part in [(frames_out, "frames"), (texts_out, "texts")]:
         if args.part in (part, "all") and path.exists():
             raise FileExistsError(f"Cache exists, delete it first: {path}")
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
+    lexicon = base / args.clause_lexicon if args.clause_lexicon else None
     enc = FrozenEncoders(base / cfg["image_model_dir"], base / cfg["text_model_dir"],
-                         base / cfg["siglip_model_dir"], device)
+                         base / cfg["siglip_model_dir"], device, clause_lexicon=lexicon,
+                         max_clauses=cfg.get("max_clauses", 8))
     if args.part in ("frames", "all"):
         encode_frames(cfg, base, enc, args.max_episodes, frames_out)
     if args.part in ("texts", "all"):

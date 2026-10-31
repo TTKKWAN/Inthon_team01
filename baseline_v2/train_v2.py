@@ -20,9 +20,10 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
-from model_v2 import OrderAwareScorer
+from model_v2 import MAX_CLAUSES, OrderAwareScorer, pick_device
 
 ROOT = Path(__file__).resolve().parent
 RANK_SCORE = [1.0, 0.5, 0.25, 0.125, 0.0]
@@ -122,6 +123,31 @@ def train_rows(data, idx, pool, cfg, rng):
     return rows
 
 
+def nn_table(data, pool, group_index, k=20, max_cos=0.9):
+    """Episode -> text ids of the GTs of its k most MPNet-similar other episodes in `pool`
+    (same group index: full or first sentence), skipping near-duplicates (cos >= max_cos)."""
+    pool = [i for i in pool if group_index < len(data.groups[i])]
+    pos = [data.groups[i][group_index]["pos"] for i in pool]
+    emb = F.normalize(data.full[pos, :768].float(), dim=-1)
+    table = {}
+    for s in range(0, len(pool), 1024):
+        sim = emb[s:s + 1024] @ emb.T
+        n = sim.shape[0]
+        sim[torch.arange(n), torch.arange(s, s + n)] = -2
+        sim[sim >= max_cos] = -2
+        for a, top in enumerate(sim.topk(k, dim=1).indices.tolist()):
+            table[pool[s + a]] = [pos[b] for b in top]
+    return table
+
+
+def nn_rows(data, valid, group_index):
+    """Shortcut-free validation: 1 GT + the GTs of the 4 most similar other valid episodes."""
+    table = nn_table(data, valid, group_index, k=4)
+    rows = [[(i, False, data.groups[i][group_index]["pos"])] + [(i, False, t) for t in negs]
+            for i, negs in sorted(table.items())]
+    return rows, [["pos"] + ["nn"] * 4 for _ in rows]
+
+
 def valid_rows(data, valid, group_index, seed):
     """1 positive + 4 negatives of distinct types (random-other fallback)."""
     rng = random.Random(seed)
@@ -194,8 +220,11 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     if (out / "best.pt").exists():
         raise FileExistsError(f"Use a new --output-dir: {out}")
-    torch.manual_seed(cfg["seed"])
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    # train_seed varies initialization and sampling only; the split and the validation
+    # questions always come from cfg["seed"], so runs stay comparable.
+    train_seed = cfg.get("train_seed", cfg["seed"])
+    torch.manual_seed(train_seed)
+    device = pick_device()
     cache = base / cfg["cache_dir"]
     data = Data(cache / f"frames{args.suffix}.pt", cache / cfg["texts_cache"], device)
 
@@ -212,7 +241,8 @@ def main():
 
     model_config = {"frame_dim": data.frames.shape[2], "text_dim": data.full.shape[1],
                     "d_model": cfg["d_model"], "layers": cfg["layers"],
-                    "heads": cfg["heads"], "dropout": cfg["dropout"]}
+                    "heads": cfg["heads"], "dropout": cfg["dropout"],
+                    "max_clauses": cfg.get("max_clauses", MAX_CLAUSES)}
     model = OrderAwareScorer(**model_config).to(device)
     run = None
     if args.wandb:
@@ -227,7 +257,7 @@ def main():
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, cfg["learning_rate"], total_steps=steps,
                                                 pct_start=0.1)
     ce = nn.CrossEntropyLoss()
-    rng = random.Random(cfg["seed"])
+    rng = random.Random(train_seed)
     best, stale, history = -1.0, 0, []
     print(f"device {device}; train {len(train)}; valid {len(valid)}", flush=True)
     for epoch in range(1, cfg["epochs"] + 1):
