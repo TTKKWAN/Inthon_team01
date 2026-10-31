@@ -85,7 +85,8 @@ def encode_texts(cfg, base, enc, episode_ids, out):
             texts.append(text)
         return index[text]
 
-    groups = [[{"pos": tid(g["pos"]), "negs": [[k, tid(t)] for k, t in g["negs"]]}
+    groups = [[{"pos": tid(g["pos"]), "negs": [[k, tid(t)] for k, t in g["negs"]],
+                "variants": [tid(v) for v in g.get("pos_variants", [])]}
                for g in bank[e]] for e in episode_ids]
     full, clause_flat, offsets = [], [], [0]
     for s in range(0, len(texts), 2048):

@@ -102,13 +102,19 @@ def train_rows(data, idx, pool, cfg, rng):
     rows = []
     for i in idx:
         groups = data.groups[i]
-        g = 1 if len(groups) > 1 and rng.random() < cfg["short_group_prob"] else 0
+        # Short view: any single-sentence group (v3 banks have one per sentence).
+        g = (rng.randrange(1, len(groups))
+             if len(groups) > 1 and rng.random() < cfg["short_group_prob"] else 0)
         group = groups[g]
+        # Meaning-preserving rewrite of the positive (v3 banks), so edits are not a tell.
+        pos = group["pos"]
+        if group.get("variants") and rng.random() < cfg.get("pos_variant_prob", 0.0):
+            pos = rng.choice(group["variants"])
         # Leave-one-type-out: types in `exclude_types` are never trained on, only validated,
         # to see whether the scorer rejects a kind of negative it has never seen.
         pool_negs = [n for n in group["negs"] if n[0] not in cfg.get("exclude_types", [])]
         negs = rng.sample(pool_negs, min(cfg["hard_negatives"], len(pool_negs)))
-        row = [(i, False, group["pos"])] + [(i, False, t) for _, t in negs]
+        row = [(i, False, pos)] + [(i, False, t) for _, t in negs]
         need = cfg["hard_negatives"] + cfg["random_negatives"] - len(negs)
         while need:
             j = rng.choice(pool)
@@ -117,7 +123,7 @@ def train_rows(data, idx, pool, cfg, rng):
                 row.append((i, False, other[min(g, len(other) - 1)]["pos"]))
                 need -= 1
         if cfg["reverse_video_negative"]:
-            row.append((i, True, group["pos"]))
+            row.append((i, True, pos))
         rows.append(row)
     return rows
 
@@ -146,6 +152,45 @@ def valid_rows(data, valid, group_index, seed):
         rows.append(row)
         kinds.append(kind)
     return rows, kinds
+
+
+def shuffle_videos(rows, valid, seed):
+    """Same questions, but every candidate is paired with ANOTHER episode's video.
+    A model that really uses the video drops to chance (0.375); what it keeps is
+    what it solves from the text alone (artifacts of our negative generator)."""
+    rng = random.Random(seed)
+    perm = valid[:]
+    while any(a == b for a, b in zip(valid, perm)):
+        rng.shuffle(perm)
+    other = dict(zip(valid, perm))
+    return [[(other[c[0]], c[1], c[2]) for c in row] for row in rows]
+
+
+def text_to_video_rows(data, idx, pool, n_videos, rng):
+    """Text -> video ranking: one GT text, its own video first + other videos.
+    Text artifacts cannot solve this direction, so it pushes the scorer to use the video."""
+    rows = []
+    for i in idx:
+        others = [j for j in rng.sample(pool, n_videos + 1) if j != i][:n_videos]
+        text = data.groups[i][0]["pos"]
+        rows.append([(i, False, text)] + [(j, False, text) for j in others])
+    return rows
+
+
+class TextBias(nn.Module):
+    """Text-only scorer used only during training (product-of-experts debiasing).
+    It absorbs whatever can be solved from the text alone; the main scorer is trained on
+    logits + bias.detach(), so it only has to learn the part that needs the video.
+    Not exported: inference uses the main scorer alone."""
+
+    def __init__(self, text_dim=1536, hidden=256):
+        super().__init__()
+        self.net = nn.Sequential(nn.LayerNorm(text_dim + 1), nn.Linear(text_dim + 1, hidden),
+                                 nn.GELU(), nn.Linear(hidden, 1))
+
+    def forward(self, full_text, clause_mask):
+        n = clause_mask.float().sum(1, keepdim=True) / 8
+        return self.net(torch.cat([full_text, n], -1)).squeeze(-1)
 
 
 @torch.no_grad()
@@ -209,6 +254,9 @@ def main():
         encoding="utf-8")
     val_sets = {"full": valid_rows(data, valid, 0, cfg["seed"] + 1),
                 "short": valid_rows(data, valid, 1, cfg["seed"] + 2)}
+    for name in ["full", "short"]:
+        rows, kinds = val_sets[name]
+        val_sets[f"{name}_shuf"] = (shuffle_videos(rows, valid, cfg["seed"] + 3), kinds)
 
     model_config = {"frame_dim": data.frames.shape[2], "text_dim": data.full.shape[1],
                     "d_model": cfg["d_model"], "layers": cfg["layers"],
@@ -221,8 +269,10 @@ def main():
                          name=args.run_name or out.name, dir=str(out),
                          config={**cfg, **model_config, "train_episodes": len(train),
                                  "valid_episodes": len(valid)})
-    opt = torch.optim.AdamW(model.parameters(), lr=cfg["learning_rate"],
-                            weight_decay=cfg["weight_decay"])
+    debias = cfg.get("debias_weight", 0.0) > 0
+    bias = TextBias(data.full.shape[1]).to(device) if debias else None
+    params = list(model.parameters()) + (list(bias.parameters()) if debias else [])
+    opt = torch.optim.AdamW(params, lr=cfg["learning_rate"], weight_decay=cfg["weight_decay"])
     steps = cfg["epochs"] * ((len(train) + cfg["batch_size"] - 1) // cfg["batch_size"])
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, cfg["learning_rate"], total_steps=steps,
                                                 pct_start=0.1)
@@ -237,12 +287,24 @@ def main():
         loss_sum = 0.0
         for s in range(0, len(perm), cfg["batch_size"]):
             idx = perm[s:s + cfg["batch_size"]]
-            logits = score(model, data, train_rows(data, idx, train, cfg, rng),
-                           frame_views(data, idx, cfg, rng))
-            loss = ce(logits, torch.zeros(len(idx), dtype=torch.long, device=device))
+            target0 = torch.zeros(len(idx), dtype=torch.long, device=device)
+            rows = train_rows(data, idx, train, cfg, rng)
+            inputs = data.batch(rows, frame_views(data, idx, cfg, rng))
+            logits = model(*inputs).view(len(rows), -1)
+            if debias:
+                # Product of experts: the main scorer sees the text-only bias as a fixed
+                # offset, so it gains nothing from re-learning text artifacts.
+                b = bias(inputs[2], inputs[4]).view(len(rows), -1)
+                loss = ce(logits + b.detach(), target0) + cfg["debias_weight"] * ce(b, target0)
+            else:
+                loss = ce(logits, target0)
+            if cfg.get("t2v_weight", 0.0) > 0:
+                t2v = score(model, data, text_to_video_rows(data, idx, train,
+                                                            cfg.get("t2v_videos", 7), rng))
+                loss = loss + cfg["t2v_weight"] * ce(t2v, target0)
             opt.zero_grad(set_to_none=True)
             loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            nn.utils.clip_grad_norm_(params, 1.0)
             opt.step()
             sched.step()
             loss_sum += loss.item() * len(idx)
@@ -250,12 +312,20 @@ def main():
                 run.log({"train/step_loss": loss.item(), "train/lr": sched.get_last_lr()[0]})
         metrics = {"epoch": epoch, "train_loss": round(loss_sum / len(train), 4)}
         for name, (rows, kinds) in val_sets.items():
+            res = evaluate(model, data, rows, kinds, name)
+            if name.endswith("_shuf"):  # only the score matters for the shuffled-video check
+                res = {f"{name}_lb": res[f"{name}_lb"]}
             metrics.update({k: round(v, 4) if isinstance(v, float) else v
-                            for k, v in evaluate(model, data, rows, kinds, name).items()})
+                            for k, v in res.items()})
+        for name in ["full", "short"]:
+            # Video-grounded part of the score: what is lost when the video is wrong.
+            metrics[f"{name}_gap"] = round(metrics[f"{name}_lb"] - metrics[f"{name}_shuf_lb"], 4)
         history.append(metrics)
         print(json.dumps(metrics), flush=True)
         # Select on the mean of both views: test descriptions may be short or long.
         target = (metrics["full_lb"] + metrics["short_lb"]) / 2
+        if cfg.get("select_metric") == "gap":
+            target = (metrics["full_gap"] + metrics["short_gap"]) / 2
         if run:
             # "full_vs_order" -> "full/vs_order" so wandb groups panels by view.
             run.log({"epoch": epoch, "train/loss": metrics["train_loss"], "val/mean_lb": target,

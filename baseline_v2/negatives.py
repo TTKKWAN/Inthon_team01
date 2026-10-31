@@ -342,20 +342,157 @@ class Maker:
         return negatives
 
 
-def build(data_dir, seed=SEED, scale=1):
+# ---- meaning-preserving rewrites (applied to positives AND negatives) -----------------
+# If only negatives are ever edited, "looks edited" alone gives the answer away. These
+# rewrites keep the meaning, so a positive can carry the same kinds of traces as a negative.
+
+SYNONYM_GROUPS = [("lift", "raise"), ("place", "put", "set"), ("show", "display", "present"),
+                  ("pick up", "grab"), ("move", "shift"), ("hold", "grip")]
+NEUTRAL_SUBJECT = {"A person": "Someone", "Someone": "A person", "The person": "They"}
+_SING_SUBJ = r"(?:A person|The person|Someone|A hand|The hand|A man|A woman|He|She)"
+
+
+def ing_form(base):
+    if base in IRREGULAR:
+        return IRREGULAR[base][1]
+    if re.fullmatch(r"[^aeiou]*[aeiou][bdgmnprt]", base):  # drop -> dropping, tap -> tapping
+        return base + base[-1] + "ing"
+    return inflect(base)[2]
+
+
+def synonym_table():
+    table = {}
+    for group in SYNONYM_GROUPS:
+        for i, form in enumerate(zip(*(inflect(v) for v in group))):
+            # same inflection slot across the group: base, 3sg, -ing, past
+            for a in form:
+                table.setdefault(a, [b for b in form if b != a])
+    return table
+
+
+SYNONYM_TABLE = synonym_table()
+
+
+class Paraphraser:
+    """Rule-based rewrites that keep what the sentence claims about the video."""
+
+    def __init__(self, texts, rng):
+        self.rng = rng
+        # Verb lexicon mined from Train: base forms seen after "they" whose 3sg form is
+        # seen after a singular subject ("they lift" + "a person lifts").
+        bases = Counter(m.group(1).lower() for t in texts
+                        for m in re.finditer(r"\b[Tt]hey\s+([a-z]+)\b", t))
+        third = Counter(m.group(1).lower() for t in texts
+                        for m in re.finditer(rf"\b{_SING_SUBJ}\s+([a-z]+s)\b", t))
+        self.verbs = {b: inflect(b)[1] for b in bases
+                      if inflect(b)[1] in third and b not in STOP and len(b) > 2}
+        self.third_to_base = {s: b for b, s in self.verbs.items()}
+
+    def synonym(self, text):
+        return swap_from_table(text, SYNONYM_TABLE, self.rng, verb_context_ok)
+
+    def subject(self, text):
+        hits = [(m.span(), NEUTRAL_SUBJECT[m.group(0)]) for m in
+                re.finditer(r"(?:(?<=^)|(?<=[.!?]\s))(?:A person|Someone|The person)\b", text)]
+        if not hits:
+            return None
+        (a, b), new = self.rng.choice(hits)
+        if new == "They":  # "The person lifts" -> "They lift": fix the verb right after
+            m = re.match(r"\s+([a-z]+s)\b", text[b:])
+            if not m or m.group(1) not in self.third_to_base:
+                return None
+            return text[:a] + "They " + self.third_to_base[m.group(1)] + text[b + m.end():]
+        return text[:a] + new + text[b:]
+
+    def marker(self, text):
+        sents = sentences(text)
+        if len(sents) < 2:
+            return None
+        i = self.rng.randrange(1, len(sents))
+        s = sents[i]
+        if _MARKER.match(s):
+            rest = _MARKER.sub("", s)
+            sents[i] = rest[:1].upper() + rest[1:]
+        elif s.startswith("They "):
+            sents[i] = self.rng.choice(["Then they ", "Next, they ", "After that, they "]) + s[5:]
+        else:
+            return None
+        return " ".join(sents)
+
+    def merge(self, text):
+        m = re.search(r"\.\s+They\b", text)
+        return text[:m.start()] + ", and then they" + text[m.end():] if m else None
+
+    def progressive(self, text):
+        """'A person lifts X and places Y' -> 'A person is lifting X and placing Y'
+        (the test example reads 'a man is buttoning his shirt')."""
+        out, changed = [], False
+        for s in sentences(text):
+            m = re.search(rf"\b({_SING_SUBJ})\s+([a-z]+s)\b", s)
+            t = re.search(r"\b([Tt]hey)\s+([a-z]+)\b", s)
+            if m and m.group(2) in self.third_to_base:
+                base = self.third_to_base[m.group(2)]
+                s = s[:m.start(2)] + "is " + ing_form(base) + s[m.end(2):]
+                coord = {v: b for v, b in self.third_to_base.items()}
+            elif t and t.group(2) in self.verbs:
+                s = s[:t.start(2)] + "are " + ing_form(t.group(2)) + s[t.end(2):]
+                coord = {b: b for b in self.verbs}
+            else:
+                out.append(s)
+                continue
+            # Coordinated verbs of the same subject: ", lowers" / "and places" -> -ing.
+            s = re.sub(r"(,\s+(?:and\s+)?|\band\s+)([a-z]+)\b",
+                       lambda x: x.group(1) + (ing_form(coord[x.group(2)])
+                                               if x.group(2) in coord else x.group(2)), s)
+            out.append(s)
+            changed = True
+        return " ".join(out) if changed else None
+
+    def rewrite(self, text, ops=None):
+        """Apply 1-2 random meaning-preserving rewrites; None if nothing applies."""
+        ops = ops or [self.synonym, self.subject, self.marker, self.merge, self.progressive]
+        order = self.rng.sample(ops, len(ops))
+        n, out = self.rng.choice([1, 1, 2]), text
+        for op in order:
+            if n == 0:
+                break
+            new = op(out)
+            if new and new != out:
+                out, n = new, n - 1
+        return out if out != text else None
+
+
+def build(data_dir, seed=SEED, scale=1, variants=False):
     folders = sorted((p for p in Path(data_dir).glob("episode_*") if p.is_dir()),
                      key=lambda p: int(p.name.split("_")[1]))
     texts = {f.name: (f / "description.txt").read_text(encoding="utf-8").strip()
              for f in folders}
     objects = mine_objects(list(texts.values()))
     maker = Maker(texts, objects, random.Random(seed))
+    para = Paraphraser(list(texts.values()), random.Random(seed + 1)) if variants else None
     out = {}
     for name, gt in texts.items():
         maker.current = name
-        groups = [{"pos": gt, "negs": maker.make(gt, scale)}]
         sents = sentences(gt)
-        if len(sents) >= 2:
-            groups.append({"pos": sents[0], "negs": maker.make(sents[0], scale)})
+        if not variants:
+            groups = [{"pos": gt, "negs": maker.make(gt, scale)}]
+            if len(sents) >= 2:
+                groups.append({"pos": sents[0], "negs": maker.make(sents[0], scale)})
+            out[name] = groups
+            continue
+        # v3: full GT, then EVERY sentence alone (sentence 0 stays group 1 for the
+        # short validation), each with rewritten positive variants; half of the
+        # negatives get the same kind of rewrite so "edited" is no longer a giveaway.
+        positives = [gt] + (sents if len(sents) >= 2 else [])
+        groups = []
+        for pos in positives:
+            negs = maker.make(pos, scale)
+            for neg in negs:
+                if para.rng.random() < 0.5:
+                    neg[1] = para.rewrite(neg[1]) or neg[1]
+            pos_variants = {v for v in [para.progressive(pos), para.rewrite(pos),
+                                        para.rewrite(pos)] if v and v != pos}
+            groups.append({"pos": pos, "pos_variants": sorted(pos_variants), "negs": negs})
         out[name] = groups
     return out, objects
 
@@ -368,10 +505,14 @@ def main():
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--scale", type=int, default=1,
                         help="multiply PER_TYPE counts (bigger bank to sample from)")
+    parser.add_argument("--variants", action="store_true",
+                        help="v3: sentence-window positives + meaning-preserving rewrites "
+                             "of positives and half of the negatives")
     args = parser.parse_args()
-    out, objects = build(args.data_dir, args.seed, args.scale)
+    out, objects = build(args.data_dir, args.seed, args.scale, args.variants)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps({"seed": args.seed, "scale": args.scale,
+                                    "variants": args.variants,
                                     "objects": objects, "episodes": out},
                                    ensure_ascii=False, indent=1), encoding="utf-8")
     kinds = Counter(k for groups in out.values() for g in groups for k, _ in g["negs"])

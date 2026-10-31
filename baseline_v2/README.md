@@ -16,7 +16,38 @@
 | v2_submission | DINOv2 + SigLIP + MPNet, 순서 인식 scorer | 위와 같음 + 시간 역순 영상 | 0.844 | 0.879 | 0.861 | 71.4% |
 
 - 스타터킷 baseline은 자기 검증(정답 vs random 오답 1개)에서 pair accuracy 95%가 나오지만, 같은 장면을 조금 바꾼 오답 앞에서는 찍기보다 조금 나은 수준이다.
-- **리더보드 점수는 아직 없다.** 검증 오답이 학습 오답과 같은 생성기에서 나오므로 실제 테스트 점수는 이보다 낮을 수 있다.
+- **리더보드: minimal_submission = 0.4260** (public, 추론 3분 5초). 자체 검증 0.728보다 훨씬 낮다. 원인은 아래 "텍스트 꼼수".
+
+## 텍스트 꼼수: 검증은 높은데 리더보드가 낮은 이유
+
+같은 검증 문제에 **엉뚱한 에피소드의 영상**을 넣어도 점수가 찍기(0.375)로 떨어지지 않는다. 모델이 영상보다 "규칙으로 손댄 문장인지"를 보고 고르고 있다는 뜻이다. 테스트 오답에는 우리 생성기의 흔적이 없으니 이 몫이 사라진다.
+
+| 모델 | full (진짜 영상) | full (엉뚱한 영상) | 영상 몫 | short (진짜) | short (엉뚱) | 영상 몫 |
+| --- | --- | --- | --- | --- | --- | --- |
+| minimal | 0.653 | 0.525 | +0.13 | 0.803 | 0.643 | +0.16 |
+| v2 (grd_base) | 0.844 | 0.630 | +0.21 | 0.879 | 0.708 | +0.17 |
+| v2 + debias (grd_debias) | 0.830 | **0.500** | **+0.33** | 0.869 | **0.531** | **+0.34** |
+| v2 + 텍스트→영상 loss (grd_t2v) | 0.834 | 0.472 | +0.36 | 0.880 | 0.711 | +0.17 |
+| v2 + 둘 다 (grd_both) | 0.825 | 0.473 | +0.35 | 0.876 | 0.604 | +0.27 |
+| v3 bank + debias | 0.829 | 0.496 | +0.33 | 0.859 | 0.526 | +0.33 |
+
+- `train_v2.py`가 매 epoch `full_shuf_lb`, `short_shuf_lb`(엉뚱한 영상 점수)와 `*_gap`(영상 몫)을 같이 기록한다. **모델은 영상 몫을 보고 고르자.**
+- **debias** (`--set debias_weight=1.0`): 학습 때만 텍스트 전용 보조 모델을 붙여(product-of-experts) 문장만으로 풀리는 몫을 가져가게 한다. 추론에는 쓰지 않는다.
+- **텍스트→영상 loss** (`--set t2v_weight=1.0`): 설명 하나에 영상 8개를 주고 맞는 영상을 고르게 한다.
+- **v3 bank** (`negatives.py --variants`): 모든 문장을 각각 짧은 정답으로 쓰고, 뜻이 같은 rewrite(진행형, 동의어, 주어, 접속어, 문장 합치기)를 정답 변형과 오답 절반에 적용한다. 이 검증에서는 개선이 없었다(검증 오답이 v1 생성기 그대로라 문체 강건성은 드러나지 않음).
+- 원본: `results/eval_runs_grounding.json`, `results/history_grd_*.json`, `results/history_v3_*.json`
+
+## 허용 패키지 확인 (`check_deps.py`)
+
+제출 ZIP을 새 프로세스에서 로딩·추론하고, 실제로 불려 온 패키지를 채점 환경 목록과 비교한다.
+
+```bash
+python check_deps.py outputs/minimal_submission.zip outputs/v2_debias_submission.zip
+```
+
+- **v2의 SigLIP 토크나이저(`SiglipTokenizer`)는 `sentencepiece`가 필요한데, 채점 환경에 없다.** `model_v2.py`의 `load_siglip_tokenizer`로 SigLIP `tokenizer.json`(fast 토크나이저)을 쓰도록 바꿨다. Train 절 8,740개에서 토큰이 같고 텍스트 특징 차이가 0이라 재학습은 필요 없다.
+- 주의: fast 토크나이저는 기본으로 `attention_mask`도 넘기는데, SigLIP은 mask 없이 학습돼서 넣으면 결과가 달라진다(검증 0.849 → 0.461). `model_input_names=["input_ids"]`로 막아 두었다.
+- 이 수정 전에 export한 v2 ZIP은 서버에서 로딩 오류가 날 수 있으니 다시 export해서 쓴다.
 
 ## minimal_submission이 스타터킷과 다른 점
 
@@ -41,6 +72,7 @@ baseline_v2/
 ├── train_v2.py, model_v2.py, submission.py, export_v2.py   # v2 모델
 ├── eval_runs.py          # 학습한 run들을 같은 검증 세트로 채점 (캐시 사용)
 ├── eval_submission.py    # 제출 ZIP을 실제 추론 경로로 채점
+├── check_deps.py         # 제출 ZIP이 채점 환경에 있는 패키지만 쓰는지 확인
 ├── export_val_set.py     # validation/ 파일을 다시 만드는 스크립트
 ├── download_siglip.py
 ├── results/              # 아래 "결과 파일"
@@ -103,6 +135,8 @@ python package.py --submission-dir ../baseline_v2/outputs/minimal_submission --o
 | `history_exp_*.json` | 위 run들의 epoch별 학습 loss와 검증 지표 |
 | `loto_results.json` | leave-one-type-out: 유형 하나를 학습에서 빼고 그 유형 통과율 측정 |
 | `minimal_training_info.json` | minimal_submission의 `training_info.json` |
+| `eval_runs_grounding.json` | debias / 텍스트→영상 / v3 run들의 진짜 영상·엉뚱한 영상 점수 |
+| `history_grd_*.json`, `history_v3_*.json` | 위 run들의 epoch별 기록 |
 
 leave-one-type-out 요약(처음 보는 유형에 대한 일반화):
 

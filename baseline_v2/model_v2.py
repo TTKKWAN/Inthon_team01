@@ -13,13 +13,14 @@ Scorer: small joint transformer over [CLS, frames, full text, clauses].
         the model can tell "A then B" from "B then A".
 """
 
+import json
 import re
 from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 from torch import nn
-from transformers import AutoImageProcessor, AutoModel, AutoTokenizer
+from transformers import AutoImageProcessor, AutoModel, AutoTokenizer, PreTrainedTokenizerFast
 
 IMAGE_MODEL_ID = "facebook/dinov2-base"
 TEXT_MODEL_ID = "sentence-transformers/all-mpnet-base-v2"
@@ -125,6 +126,20 @@ def _load(model_dir, dtype=torch.float32):
     return AutoModel.from_pretrained(model_dir, local_files_only=True, dtype=dtype)
 
 
+def load_siglip_tokenizer(model_dir):
+    """SigLIP's own tokenizer class needs sentencepiece, which the scoring environment does
+    not have. Its tokenizer.json gives identical ids (checked on 8,740 Train clauses) and
+    needs only `tokenizers`, a dependency of transformers."""
+    model_dir = Path(model_dir)
+    special = json.loads((model_dir / "special_tokens_map.json").read_text(encoding="utf-8"))
+    special = {k: v["content"] if isinstance(v, dict) else v for k, v in special.items()
+               if k in ("pad_token", "eos_token", "unk_token")}
+    # SiglipTokenizer returns input_ids only; SigLIP was trained on max_length padding
+    # without an attention mask, and passing one changes the text embedding.
+    return PreTrainedTokenizerFast(tokenizer_file=str(model_dir / "tokenizer.json"),
+                                   model_input_names=["input_ids"], **special)
+
+
 class FrozenEncoders:
     def __init__(self, image_model_dir, text_model_dir, siglip_model_dir, device="cpu",
                  image_batch_size=32, text_batch_size=64):
@@ -136,8 +151,7 @@ class FrozenEncoders:
         self.siglip_processor = AutoImageProcessor.from_pretrained(
             siglip_model_dir, local_files_only=True, use_fast=False)
         self.tokenizer = AutoTokenizer.from_pretrained(text_model_dir, local_files_only=True)
-        self.siglip_tokenizer = AutoTokenizer.from_pretrained(siglip_model_dir,
-                                                              local_files_only=True)
+        self.siglip_tokenizer = load_siglip_tokenizer(siglip_model_dir)
         self.image_model = _load(image_model_dir)
         self.text_model = _load(text_model_dir)
         self.siglip = _load(siglip_model_dir)

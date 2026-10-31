@@ -14,7 +14,7 @@ from pathlib import Path
 import torch
 
 from model_v2 import OrderAwareScorer
-from train_v2 import Data, evaluate, valid_rows
+from train_v2 import Data, evaluate, shuffle_videos, valid_rows
 
 ROOT = Path(__file__).resolve().parent
 
@@ -41,6 +41,9 @@ def main():
             valid = sorted(index[e] for e in valid_ids)
             sets = {"full": valid_rows(data, valid, 0, cfg["seed"] + 1),
                     "short": valid_rows(data, valid, 1, cfg["seed"] + 2)}
+            for name in ["full", "short"]:
+                rows, kinds = sets[name]
+                sets[f"{name}_shuf"] = (shuffle_videos(rows, valid, cfg["seed"] + 3), kinds)
         elif valid_ids != splits:
             raise ValueError(f"{run} used a different validation split")
         ckpt = torch.load(run / "best.pt", map_location="cpu", weights_only=False)
@@ -50,12 +53,14 @@ def main():
         for name, (rows, kinds) in sets.items():
             metrics.update(evaluate(model, data, rows, kinds, name))
         metrics["mean_lb"] = (metrics["full_lb"] + metrics["short_lb"]) / 2
+        for name in ["full", "short"]:
+            metrics[f"{name}_gap"] = metrics[f"{name}_lb"] - metrics[f"{name}_shuf_lb"]
         results.append(metrics)
 
-    cols = ["mean_lb", "full_lb", "short_lb", "full_acc", "full_vs_spatial",
-            "full_vs_attribute", "full_vs_antonym", "full_vs_order", "full_vs_drop_corrupt"]
-    print("run".ljust(22) + "ep  " + "  ".join(c.replace("full_vs_", "vs_")[:10].rjust(10)
-                                               for c in cols))
+    cols = ["mean_lb", "full_lb", "full_shuf_lb", "full_gap", "short_lb", "short_shuf_lb",
+            "short_gap", "full_vs_antonym", "full_vs_spatial"]
+    print("run".ljust(22) + "ep  " + "  ".join(
+        c.replace("full_vs_", "vs_").replace("_lb", "")[:10].rjust(10) for c in cols))
     for m in results:
         print(m["run"].ljust(22) + str(m["epoch"]).rjust(2) + "  "
               + "  ".join(f"{m[c]:10.4f}" for c in cols))
