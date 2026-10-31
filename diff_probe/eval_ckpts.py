@@ -61,7 +61,7 @@ def main():
     ckpts = sorted(args.run.glob("epoch*.pt"), key=lambda p: int(re.findall(r"\d+", p.name)[0]))
     table = []
     for ck in ckpts:
-        model.load_state_dict(torch.load(ck, map_location=args.device)["model"])
+        model.load_state_dict(torch.load(ck, map_location=args.device, weights_only=False)["model"])
         row = {"ckpt": ck.name,
                "A": {k: evaluate(model, text_enc, rows, frames, args.device)["score"]
                      for k, rows in half_a.items()},
@@ -75,7 +75,7 @@ def main():
         best = max(table, key=lambda r: sum(r["A"][s] for s in sets) / len(sets))
         ck = best["ckpt"]
         if ck not in controls:  # reversed / other-video only for the chosen checkpoints
-            model.load_state_dict(torch.load(args.run / ck, map_location=args.device)["model"])
+            model.load_state_dict(torch.load(args.run / ck, map_location=args.device, weights_only=False)["model"])
             controls[ck] = {k: {c: evaluate(model, text_enc, rows, frames, args.device, c)["score"]
                                 for c in ("reversed", "other")} for k, rows in half_b.items()}
         report[name] = {"ckpt": ck,
