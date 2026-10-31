@@ -193,16 +193,17 @@ def step_loss(model, text_enc, batch, device, n_other=3, w_video=1.0):
 
 
 @torch.no_grad()
-def evaluate(model, text_enc, rows, frames, device, condition="normal", seed=0, batch=64):
-    """condition: normal | reversed | other (frames of a different validation episode)."""
-    model.eval()
+def prepare_eval(text_enc, rows, seed=0, batch=64):
+    """Everything in evaluate() that does not depend on the checkpoint: choice shuffle,
+    marks, centrality and the frozen MPNet states (kept on CPU in fp16). Compute once per
+    set and pass to evaluate(prepared=...) for every checkpoint."""
     rng = random.Random(seed)
     episodes = [r["episode"] for r in rows]
-    total, top1, total_cent, n = 0.0, 0, 0.0, 0
+    out = []
     for s in range(0, len(rows), batch):
         chunk = rows[s:s + batch]
-        texts, spans, labels, fr, cents = [], [], [], [], []
-        for k, r in enumerate(chunk):
+        texts, spans, labels, cents = [], [], [], []
+        for r in chunk:
             ch = list(r["choices"])
             rng.shuffle(ch)
             t = [c["text"] for c in ch]
@@ -210,11 +211,29 @@ def evaluate(model, text_enc, rows, frames, device, condition="normal", seed=0, 
             spans += mark_spans(t, MARKS["mode"])
             labels.append(next(i for i, c in enumerate(ch) if c["type"] == "pos"))
             cents.append(score_span(t))
-            ep = r["episode"]
-            if condition == "other":
-                ep = episodes[(s + k + len(rows) // 2) % len(rows)]
-            fr.append(frames.get(ep))
         h, tm, mk = text_enc(texts, spans)
+        out.append({"start": s, "episodes": [r["episode"] for r in chunk], "labels": labels,
+                    "cents": cents, "h": h.half().cpu(), "tm": tm.cpu(), "mk": mk.cpu()})
+    return {"episodes": episodes, "batches": out}
+
+
+@torch.no_grad()
+def evaluate(model, text_enc, rows, frames, device, condition="normal", seed=0, batch=64,
+             prepared=None):
+    """condition: normal | reversed | other (frames of a different validation episode)."""
+    model.eval()
+    if prepared is None:
+        prepared = prepare_eval(text_enc, rows, seed, batch)
+    episodes = prepared["episodes"]
+    total, top1, total_cent, n = 0.0, 0, 0.0, 0
+    for pb in prepared["batches"]:
+        s, chunk, labels, cents = pb["start"], pb["episodes"], pb["labels"], pb["cents"]
+        fr = []
+        for k, ep in enumerate(chunk):
+            if condition == "other":
+                ep = episodes[(s + k + len(episodes) // 2) % len(episodes)]
+            fr.append(frames.get(ep))
+        h, tm, mk = (pb["h"].to(device).float(), pb["tm"].to(device), pb["mk"].to(device))
         fx, fm = pad_frames(fr, device, reverse=(condition == "reversed"))
         mem = model.encode_video(fx, fm)
         vid = torch.arange(len(chunk), device=device).repeat_interleave(5)

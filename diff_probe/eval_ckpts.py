@@ -20,7 +20,7 @@ import torch
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
-from train_marked import MARKS, Frames, MarkedVerifier, TextEncoder, evaluate  # noqa: E402
+from train_marked import MARKS, Frames, MarkedVerifier, TextEncoder, evaluate, prepare_eval  # noqa: E402
 
 SETS = ["short/H1_disjoint", "short/H2_samespot", "short/H3_multi", "short/H4_chain",
         "short/H5_mix", "short/H6_fact_a_b_ab_c", "short/H7_fact_a_b_ab_ac", "full/H5_mix"]
@@ -51,42 +51,52 @@ def main():
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--marks", choices=["slots", "ref"], default="slots",
                     help="must match the run (marked_v1 was trained with ref)")
+    ap.add_argument("--sets", default=",".join(SETS),
+                    help="comma-separated set names in --valsets")
+    ap.add_argument("--out", type=Path, default=None, help="default: <run>/eval_ckpts.json")
     args = ap.parse_args()
     MARKS["mode"] = args.marks
 
+    names = args.sets.split(",")
     valsets = json.loads(args.valsets.read_text())["sets"]
-    valsets = {k: valsets[k] for k in SETS}
+    valsets = {k: valsets[k] for k in names}
+    criteria = {k: v for k, v in CRITERIA.items() if all(s in valsets for s in v)}
+    if not criteria:
+        criteria = {"all": names}
     half_a, half_b = split_halves(valsets)
     frames = Frames(args.frames, args.max_frames)
     text_enc = TextEncoder(args.text_model, args.device)
     model = MarkedVerifier(max_frames=32).to(args.device)
+    # marks, shuffles and MPNet states do not depend on the checkpoint: compute them once
+    prep_a = {k: prepare_eval(text_enc, rows) for k, rows in half_a.items()}
+    prep_b = {k: prepare_eval(text_enc, rows) for k, rows in half_b.items()}
+
+    def run(prep, condition="normal"):
+        return {k: evaluate(model, text_enc, None, frames, args.device, condition, prepared=p)["score"]
+                for k, p in prep.items()}
 
     ckpts = sorted(args.run.glob("epoch*.pt"), key=lambda p: int(re.findall(r"\d+", p.name)[0]))
     table = []
     for ck in ckpts:
         model.load_state_dict(torch.load(ck, map_location=args.device, weights_only=False)["model"])
-        row = {"ckpt": ck.name,
-               "A": {k: evaluate(model, text_enc, rows, frames, args.device)["score"]
-                     for k, rows in half_a.items()},
-               "B": {k: evaluate(model, text_enc, rows, frames, args.device)["score"]
-                     for k, rows in half_b.items()}}
+        row = {"ckpt": ck.name, "A": run(prep_a), "B": run(prep_b)}
         table.append(row)
         print(json.dumps(row), flush=True)
 
     report, controls = {}, {}
-    for name, sets in CRITERIA.items():
+    for name, sets in criteria.items():
         best = max(table, key=lambda r: sum(r["A"][s] for s in sets) / len(sets))
         ck = best["ckpt"]
         if ck not in controls:  # reversed / other-video only for the chosen checkpoints
             model.load_state_dict(torch.load(args.run / ck, map_location=args.device, weights_only=False)["model"])
-            controls[ck] = {k: {c: evaluate(model, text_enc, rows, frames, args.device, c)["score"]
-                                for c in ("reversed", "other")} for k, rows in half_b.items()}
+            rev, oth = run(prep_b, "reversed"), run(prep_b, "other")
+            controls[ck] = {k: {"reversed": rev[k], "other": oth[k]} for k in prep_b}
         report[name] = {"ckpt": ck,
                         "select_mean_A": round(sum(best["A"][s] for s in sets) / len(sets), 4),
                         "B_normal": best["B"], "B_controls": controls[ck]}
         print("criterion", name, json.dumps(report[name]), flush=True)
-    out = {"criteria": CRITERIA, "per_ckpt": table, "report": report}
-    (args.run / "eval_ckpts.json").write_text(json.dumps(out, indent=1))
+    out = {"criteria": criteria, "valsets": str(args.valsets), "per_ckpt": table, "report": report}
+    (args.out or args.run / "eval_ckpts.json").write_text(json.dumps(out, indent=1))
 
 
 if __name__ == "__main__":
