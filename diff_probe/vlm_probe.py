@@ -55,6 +55,9 @@ class Judge:
     def __init__(self, model_dir, device, dtype):
         self.proc = AutoProcessor.from_pretrained(model_dir)
         self.proc.image_processor.do_image_splitting = False  # 64 tokens per frame
+        # The shipped config first upscales to longest_edge 2048 (640x360 -> 2048x1152,
+        # LANCZOS) and then shrinks to 512; resizing straight to 512 is ~3.5x faster.
+        self.proc.image_processor.size = {"longest_edge": 512}
         self.model = AutoModelForVision2Seq.from_pretrained(
             model_dir, dtype=dtype).to(device).eval()
         self.device = device
@@ -254,9 +257,11 @@ def main():
     ap.add_argument("--n-frames", type=int, default=8)
     ap.add_argument("--limit", type=int, default=300)
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--threads", type=int, default=4, help="CPU threads (several runs share a node)")
     ap.add_argument("--out", type=Path, default=ROOT / "diff_probe/results/vlm_probe.json")
     args = ap.parse_args()
 
+    torch.set_num_threads(args.threads)
     sets = json.loads(args.valsets.read_text())["sets"]
     judge = Judge(args.model, args.device, torch.float16)
     results = []
