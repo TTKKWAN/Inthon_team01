@@ -1,0 +1,1042 @@
+[
+ {
+  "episode": "episode_16",
+  "pos": "The person releases a small red cap from the far end of the white board, letting it roll toward the near edge of the table.",
+  "negs": [
+   "The person releases a small red cap from the near end of the white board, letting it roll toward the far edge of the table.",
+   "The person releases a small blue cap from the far end of the white board, letting it roll toward the near edge of the table.",
+   "The person releases a small red cap from the far end of the white board and catches it before it reaches the near edge of the table.",
+   "The person rolls a small red cap along the white board, then lifts it off the table at the near edge."
+  ]
+ },
+ {
+  "episode": "episode_38",
+  "pos": "A person sorts a pile on a wooden table, gathering a white garment and then folding a striped towel over it on the right.",
+  "negs": [
+   "A person sorts a pile on a wooden table, gathering a white garment and then folding a striped towel under it on the left.",
+   "A person sorts a pile on a wooden table, gathering a striped towel and then folding a white garment over it on the right.",
+   "A person sorts a pile on a wooden table, gathering a white garment and then tossing a striped towel off the table.",
+   "A person spreads out a pile on a wooden table, gathering two white garments and then folding a striped towel over them on the right."
+  ]
+ },
+ {
+  "episode": "episode_74",
+  "pos": "A person displays a black-capped marker in one hand and lays it near the back of a checked table.",
+  "negs": [
+   "A person displays a black-capped marker in one hand and lays it near the front of a checked table.",
+   "A person displays a red-capped marker in one hand and lays it near the back of a checked table.",
+   "A person displays a black-capped marker in one hand and puts it into a pocket instead of laying it down.",
+   "A person displays a black-capped marker in both hands and lays it near the back of a plain table."
+  ]
+ },
+ {
+  "episode": "episode_111",
+  "pos": "A clear blue-capped bottle is dropped onto a wooden table and settles on its side, followed by a yellow packet.",
+  "negs": [
+   "A clear blue-capped bottle is dropped onto a wooden table and stays upright, followed by a yellow packet.",
+   "A clear blue-capped bottle is dropped onto a wooden table and settles on its side, followed by a green packet.",
+   "A yellow packet is dropped onto a wooden table, followed by a clear blue-capped bottle that settles on its side.",
+   "A clear blue-capped bottle is placed on a wooden table and settles on its side, then picked up along with a yellow packet."
+  ]
+ },
+ {
+  "episode": "episode_144",
+  "pos": "The person drops a white sheet of paper onto the tiles beside the open door, then adds a red comb at the edge of the gray rug.",
+  "negs": [
+   "The person drops a white sheet of paper onto the tiles beside the closed door, then adds a red comb at the edge of the gray rug.",
+   "The person drops a white sheet of paper onto the tiles beside the open door, then adds a blue comb at the edge of the gray rug.",
+   "The person drops a red comb onto the tiles beside the open door, then adds a white sheet of paper at the edge of the gray rug.",
+   "The person drops a white sheet of paper onto the tiles beside the open door, then picks up a red comb from the edge of the gray rug."
+  ]
+ },
+ {
+  "episode": "episode_178",
+  "pos": "A hand removes the blue cap from the clear plastic bottle and briefly lifts the blue mug out of view before putting it back.",
+  "negs": [
+   "A hand removes the red cap from the clear plastic bottle and briefly lifts the blue mug out of view before putting it back.",
+   "A hand removes the blue cap from the clear plastic bottle and lifts the blue mug out of view without putting it back.",
+   "A hand screws the blue cap onto the clear plastic bottle and briefly lifts the blue mug out of view before putting it back.",
+   "A hand removes the blue cap from the clear plastic bottle and briefly lifts the white mug out of view before putting it back."
+  ]
+ },
+ {
+  "episode": "episode_218",
+  "pos": "The person takes a brown egg from the carton, moves it over the white bowl, and places it inside with the shell intact.",
+  "negs": [
+   "The person takes a brown egg from the carton, moves it over the white bowl, and cracks it open inside.",
+   "The person takes a white egg from the carton, moves it over the white bowl, and places it inside with the shell intact.",
+   "The person takes a brown egg from the white bowl, moves it over the carton, and places it inside with the shell intact.",
+   "The person takes a brown egg from the carton, moves it over the white bowl, and sets it down beside it on the table."
+  ]
+ },
+ {
+  "episode": "episode_259",
+  "pos": "A seated person steadies clear plastic bowls lying on their sides near the back of a white table.",
+  "negs": [
+   "A standing person steadies clear plastic bowls lying on their sides near the back of a white table.",
+   "A seated person steadies clear plastic bowls stacked upright near the back of a white table.",
+   "A seated person steadies clear plastic bowls lying on their sides near the front of a white table.",
+   "A seated person steadies clear plastic cups lying on their sides near the back of a white table."
+  ]
+ },
+ {
+  "episode": "episode_299",
+  "pos": "The person releases a blue toy car onto the cardboard ramp propped against the stack of books.",
+  "negs": [
+   "The person releases a red toy car onto the cardboard ramp propped against the stack of books.",
+   "The person releases a blue toy car onto the cardboard ramp lying flat beside the stack of books.",
+   "The person pushes a blue toy car up the cardboard ramp propped against the stack of books.",
+   "The person releases a blue toy car onto the wooden ramp propped against the stack of books."
+  ]
+ },
+ {
+  "episode": "episode_326",
+  "pos": "A person sets a blue toy car on the wooden table and pulls it to the right using the white string attached to its front.",
+  "negs": [
+   "A person sets a blue toy car on the wooden table and pulls it to the left using the white string attached to its front.",
+   "A person sets a blue toy car on the wooden table and pulls it to the right using the white string attached to its back.",
+   "A person sets a red toy car on the wooden table and pulls it to the right using the white string attached to its front.",
+   "A person sets a blue toy car on the wooden table and pushes it to the right, with the white string lying loose beside it."
+  ]
+ },
+ {
+  "episode": "episode_389",
+  "pos": "The person lays a small white paper triangle on the dark counter and presses it flat with their fingertips.",
+  "negs": [
+   "The person lays a small white paper triangle on the dark counter and folds it in half with their fingertips.",
+   "The person lays a small white paper square on the dark counter and presses it flat with their fingertips.",
+   "The person lays a small white paper triangle on the light counter and presses it flat with their fingertips.",
+   "The person lifts a small white paper triangle off the dark counter and crumples it with their fingertips."
+  ]
+ },
+ {
+  "episode": "episode_412",
+  "pos": "A hand holds up a gray knitted hat close to the camera, then takes it out of view.",
+  "negs": [
+   "A hand holds up a gray knitted hat close to the camera, then places it on a table.",
+   "A hand holds up a gray knitted scarf close to the camera, then takes it out of view.",
+   "A hand holds up a red knitted hat close to the camera, then takes it out of view.",
+   "A hand holds up a gray knitted hat far from the camera, then puts it on a head."
+  ]
+ },
+ {
+  "episode": "episode_449",
+  "pos": "A person places small objects on the floor near an open doorway, including a white-and-pink toy car and a black remote control.",
+  "negs": [
+   "A person places small objects on the floor near a closed doorway, including a white-and-pink toy car and a black remote control.",
+   "A person picks up small objects from the floor near an open doorway, including a white-and-pink toy car and a black remote control.",
+   "A person places small objects on the floor near an open doorway, including a white-and-pink toy car and a black phone.",
+   "A person places small objects on a table near an open doorway, including a white-and-blue toy car and a black remote control."
+  ]
+ },
+ {
+  "episode": "episode_481",
+  "pos": "A hand unscrews the metal cap from the clear bottle and removes it.",
+  "negs": [
+   "A hand screws the metal cap onto the clear bottle and tightens it.",
+   "A hand unscrews the plastic cap from the clear bottle and removes it.",
+   "A hand unscrews the metal cap from the clear bottle and puts it back on.",
+   "A hand unscrews the metal cap from the green bottle and removes it."
+  ]
+ },
+ {
+  "episode": "episode_541",
+  "pos": "A person opens one hand over a wooden table to show a coin in their palm, then closes it into a fist.",
+  "negs": [
+   "A person opens one hand over a wooden table to show a coin in their palm, then drops it onto the table.",
+   "A person closes one hand into a fist over a wooden table, then opens it to show a coin in their palm.",
+   "A person opens both hands over a wooden table to show two coins in their palms, then closes them into fists.",
+   "A person opens one hand over a glass table to show a key in their palm, then closes it into a fist."
+  ]
+ },
+ {
+  "episode": "episode_574",
+  "pos": "A person moves a blue pen around on the table beside a loose light bulb and its cord.",
+  "negs": [
+   "A person moves a blue pen around on the table beside a loose light bulb and its cord, then plugs the cord in.",
+   "A person moves a red pen around on the table beside a loose light bulb and its cord.",
+   "A person moves a blue pen around on the table beside a lit lamp and its cord.",
+   "A person moves a blue pen around on the table, then puts it into a cup beside a loose light bulb and its cord."
+  ]
+ },
+ {
+  "episode": "episode_620",
+  "pos": "A person places a white mug on the black counter and adds a clear glass mug to its left.",
+  "negs": [
+   "A person places a white mug on the black counter and adds a clear glass mug to its right.",
+   "A person places a clear glass mug on the black counter and adds a white mug to its left.",
+   "A person places a white mug on the black counter and removes a clear glass mug from its left.",
+   "A person places a white mug on the white counter and adds a clear glass mug to its left."
+  ]
+ },
+ {
+  "episode": "episode_661",
+  "pos": "The person types on the laptop, adding B, then O, then H to the document on the screen.",
+  "negs": [
+   "The person types on the laptop, adding B, then H, then O to the document on the screen.",
+   "The person types on the laptop, adding O, then B, then H to the document on the screen.",
+   "The person types on the laptop, adding B, then O, and deletes it before adding H to the document on the screen.",
+   "The person types on the laptop, adding B, then O, then H to a blank page on the phone screen."
+  ]
+ },
+ {
+  "episode": "episode_704",
+  "pos": "A hand holds up a dark pencil and places it horizontally on the wooden table, with its point facing right.",
+  "negs": [
+   "A hand holds up a dark pencil and places it horizontally on the wooden table, with its point facing left.",
+   "A hand holds up a dark pencil and places it vertically on the wooden table, with its point facing away.",
+   "A hand holds up a light pencil and places it horizontally on the wooden table, with its point facing right.",
+   "A hand holds up a dark pencil, places it horizontally on the wooden table, and then picks it up again."
+  ]
+ },
+ {
+  "episode": "episode_771",
+  "pos": "A person places a light blue mug on the glass table and sets a large open tin to its left.",
+  "negs": [
+   "A person places a light blue mug on the glass table and sets a large open tin to its right.",
+   "A person places a light blue mug on the glass table and sets a large closed tin to its left.",
+   "A person places a large open tin on the glass table and sets a light blue mug to its left.",
+   "A person places a light blue mug on the wooden table and sets a small open tin to its left."
+  ]
+ },
+ {
+  "episode": "episode_836",
+  "pos": "The person sets a dark pen on the table, then adds a metal fork beside it.",
+  "negs": [
+   "The person sets a dark pen on the table, then removes a metal fork from beside it.",
+   "The person sets a metal fork on the table, then adds a dark pen beside it.",
+   "The person sets a dark pen on the table, then adds a metal spoon beside it.",
+   "The person sets a red pen on the table, then adds a metal fork beside it."
+  ]
+ },
+ {
+  "episode": "episode_868",
+  "pos": "A person lifts the large clear bottle from the table, holds it up, and returns it upright.",
+  "negs": [
+   "A person lifts the large clear bottle from the table, holds it up, and returns it on its side.",
+   "A person lifts the large clear bottle from the table, holds it up, and puts it down on a shelf.",
+   "A person lifts the small clear bottle from the table, holds it up, and returns it upright.",
+   "A person lifts the large clear bottle from the table, drinks from it, and returns it upright."
+  ]
+ },
+ {
+  "episode": "episode_920",
+  "pos": "A person brings a pair of burgundy trainers to the glass table and sets them side by side.",
+  "negs": [
+   "A person brings a pair of burgundy trainers to the glass table and sets them one on top of the other.",
+   "A person brings a pair of burgundy trainers to the wooden table and sets them side by side.",
+   "A person takes a pair of burgundy trainers from the glass table and sets them side by side on the floor.",
+   "A person brings a pair of black trainers to the glass table and sets them side by side."
+  ]
+ },
+ {
+  "episode": "episode_949",
+  "pos": "A person screws a red cap onto the small blue container and places another red cap on the tall spice jar.",
+  "negs": [
+   "A person screws a red cap onto the small blue container and removes the cap from the tall spice jar.",
+   "A person screws a red cap onto the tall spice jar and places another red cap on the small blue container.",
+   "A person screws a green cap onto the small blue container and places another red cap on the tall spice jar.",
+   "A person screws a red cap onto the small blue container and places a second red cap on the floor."
+  ]
+ },
+ {
+  "episode": "episode_1015",
+  "pos": "A person moves the dark floral garment aside and folds the plain black clothing into a compact shape on the counter.",
+  "negs": [
+   "A person moves the dark floral garment aside and unfolds the plain black clothing across the counter.",
+   "A person moves the plain black clothing aside and folds the dark floral garment into a compact shape on the counter.",
+   "A person moves the dark floral garment aside and folds the plain white clothing into a compact shape on the counter.",
+   "A person folds the dark floral garment into a compact shape and then moves the plain black clothing aside on the counter."
+  ]
+ },
+ {
+  "episode": "episode_1060",
+  "pos": "A hand lifts the rightmost striped glass, revealing a white eraser beneath it, and lowers the glass again.",
+  "negs": [
+   "A hand lifts the leftmost striped glass, revealing a white eraser beneath it, and lowers the glass again.",
+   "A hand lifts the rightmost striped glass, revealing a white eraser beneath it, and sets the glass aside.",
+   "A hand lifts the rightmost striped glass, revealing nothing beneath it, and lowers the glass again.",
+   "A hand lifts the rightmost striped glass, revealing a red eraser beneath it, and lowers the glass again."
+  ]
+ },
+ {
+  "episode": "episode_1116",
+  "pos": "A person unscrews the gold lid from the front glass jar and sets it down on the counter.",
+  "negs": [
+   "A person screws the gold lid onto the front glass jar and sets it down on the counter.",
+   "A person unscrews the gold lid from the back glass jar and sets it down on the counter.",
+   "A person unscrews the silver lid from the front glass jar and sets it down on the counter.",
+   "A person unscrews the gold lid from the front glass jar and puts it back on."
+  ]
+ },
+ {
+  "episode": "episode_1150",
+  "pos": "A person turns a small dark item between their hands and places it near the white egg.",
+  "negs": [
+   "A person turns a small dark item between their hands and places it far from the white egg.",
+   "A person turns a small white item between their hands and places it near the dark egg.",
+   "A person turns a small dark item between their hands and breaks the white egg with it.",
+   "A person places a small dark item near the white egg and then turns it between their hands."
+  ]
+ },
+ {
+  "episode": "episode_1174",
+  "pos": "A person lifts the left inverted glass to show the bare tabletop, then lifts the right glass to reveal a small bottle underneath.",
+  "negs": [
+   "A person lifts the right inverted glass to show the bare tabletop, then lifts the left glass to reveal a small bottle underneath.",
+   "A person lifts the left inverted glass to show a small bottle underneath, then lifts the right glass to reveal the bare tabletop.",
+   "A person lifts the left inverted glass to show the bare tabletop, then lifts the right glass to reveal a small coin underneath.",
+   "A person lifts the left inverted glass to show the bare tabletop, then lifts the right glass and finds the bare tabletop there too."
+  ]
+ },
+ {
+  "episode": "episode_1220",
+  "pos": "A hand slides the pale card into a slot in the open black wallet on the desk.",
+  "negs": [
+   "A hand pulls the pale card out of a slot in the open black wallet on the desk.",
+   "A hand slides the pale card into a slot in the open brown wallet on the desk.",
+   "A hand slides the dark card into a slot in the open black wallet on the desk.",
+   "A hand slides the pale card into a slot in the closed black wallet on the desk."
+  ]
+ },
+ {
+  "episode": "episode_1269",
+  "pos": "A person brings the broad white lid to the top of the white jar and adjusts it with both hands.",
+  "negs": [
+   "A person removes the broad white lid from the top of the white jar and sets it aside with both hands.",
+   "A person brings the broad white lid to the top of the black jar and adjusts it with both hands.",
+   "A person brings the narrow white lid to the top of the white jar and adjusts it with one hand.",
+   "A person brings the broad white lid to the bottom of the white jar and adjusts it with both hands."
+  ]
+ },
+ {
+  "episode": "episode_1315",
+  "pos": "A red toy fire engine sits on a mathematics book beside a bowl of pens.",
+  "negs": [
+   "A red toy fire engine sits on a mathematics book beside a bowl of coins.",
+   "A blue toy fire engine sits on a mathematics book beside a bowl of pens.",
+   "A red toy fire engine sits under a mathematics book beside a bowl of pens.",
+   "A red toy fire engine sits on a mathematics book in front of a stack of cups."
+  ]
+ },
+ {
+  "episode": "episode_1344",
+  "pos": "A person pushes a blue-wheeled toy car up a clear plastic ramp on a yellow table and brings it back to the front.",
+  "negs": [
+   "A person pushes a blue-wheeled toy car down a clear plastic ramp on a yellow table and brings it back to the front.",
+   "A person pushes a red-wheeled toy car up a clear plastic ramp on a yellow table and brings it back to the front.",
+   "A person pushes a blue-wheeled toy car up a clear plastic ramp on a yellow table and lets it fall off the back.",
+   "A person pushes a blue-wheeled toy car up a wooden ramp on a red table and brings it back to the front."
+  ]
+ },
+ {
+  "episode": "episode_1361",
+  "pos": "A person presents a brown mug with a black interior above the floral table covering and takes it away.",
+  "negs": [
+   "A person presents a brown mug with a white interior above the floral table covering and takes it away.",
+   "A person presents a brown mug with a black interior above the floral table covering and sets it down on it.",
+   "A person presents a black mug with a brown interior above the floral table covering and takes it away.",
+   "A person presents a brown mug with a black interior above the plain table covering and takes it away."
+  ]
+ },
+ {
+  "episode": "episode_1401",
+  "pos": "A person takes lettuce from the plate, tears the leaves apart with both hands, and drops the pieces into the patterned bowl.",
+  "negs": [
+   "A person takes lettuce from the patterned bowl, tears the leaves apart with both hands, and drops the pieces onto the plate.",
+   "A person takes lettuce from the plate, tears the leaves apart with one hand, and drops the pieces into the patterned bowl.",
+   "A person takes lettuce from the plate, drops it whole into the patterned bowl, and then tears the leaves apart there.",
+   "A person takes a tomato from the plate, cuts it apart with a knife, and drops the pieces into the patterned bowl."
+  ]
+ },
+ {
+  "episode": "episode_1430",
+  "pos": "A hand brings the red-and-yellow tennis ball toward the left edge and releases it to roll across the red tabletop toward the books.",
+  "negs": [
+   "A hand brings the red-and-yellow tennis ball toward the right edge and releases it to roll across the red tabletop toward the books.",
+   "A hand brings the red-and-yellow tennis ball toward the left edge and holds it still on the red tabletop near the books.",
+   "A hand brings the green tennis ball toward the left edge and releases it to roll across the red tabletop toward the books.",
+   "A hand brings the red-and-yellow tennis ball toward the left edge and releases it to roll across the blue tabletop away from the books."
+  ]
+ },
+ {
+  "episode": "episode_1463",
+  "pos": "A hand places a clear ribbed cup upright near the front-left of the black tabletop.",
+  "negs": [
+   "A hand places a clear ribbed cup upside down near the front-left of the black tabletop.",
+   "A hand places a clear ribbed cup upright near the back-right of the black tabletop.",
+   "A hand places a clear smooth cup upright near the front-left of the black tabletop.",
+   "A hand lifts a clear ribbed cup from the front-left of the black tabletop."
+  ]
+ },
+ {
+  "episode": "episode_1501",
+  "pos": "A person seated on the sofa unfolds a black T-shirt and spreads it flat on the floor in front of them.",
+  "negs": [
+   "A person seated on the sofa folds a black T-shirt and sets it on the cushion beside them.",
+   "A person seated on the sofa unfolds a white T-shirt and spreads it flat on the floor in front of them.",
+   "A person standing beside the sofa unfolds a black T-shirt and spreads it flat on the floor in front of them.",
+   "A person seated on the sofa unfolds a black T-shirt and hangs it over the back of the sofa."
+  ]
+ },
+ {
+  "episode": "episode_1534",
+  "pos": "A hand presents small colorful pieces one at a time in front of a wooden tabletop.",
+  "negs": [
+   "A hand presents large colorful pieces one at a time in front of a wooden tabletop.",
+   "A hand presents small colorful pieces all at once in front of a wooden tabletop.",
+   "A hand presents small colorful pieces one at a time in front of a glass tabletop.",
+   "A hand drops small colorful pieces one at a time onto a wooden tabletop."
+  ]
+ },
+ {
+  "episode": "episode_1557",
+  "pos": "A person holds two closed fists above a table and opens the hand with a pale green bracelet, showing a small cross drawn on the palm.",
+  "negs": [
+   "A person holds two closed fists above a table and opens the hand with a pale green bracelet, showing a small circle drawn on the palm.",
+   "A person holds two closed fists above a table and opens the hand with a pale pink bracelet, showing a small cross drawn on the palm.",
+   "A person holds two open palms above a table and closes the hand with a pale green bracelet around it, hiding the cross drawn on the palm.",
+   "A person holds two closed fists above a table and opens both hands, showing a pale green bracelet and no marks on the palms."
+  ]
+ },
+ {
+  "episode": "episode_1575",
+  "pos": "A seated person bends over their black lace-up boots and pulls the laces tight on one boot, then works the laces of the other.",
+  "negs": [
+   "A seated person bends over their black lace-up boots and unties the laces on one boot, then works the laces of the other.",
+   "A seated person bends over their black lace-up boots and pulls the laces tight on one boot, then stands up.",
+   "A seated person bends over their brown lace-up boots and pulls the laces tight on one boot, then works the laces of the other.",
+   "A standing person bends over their black lace-up boots and pulls the laces tight on both boots at once."
+  ]
+ },
+ {
+  "episode": "episode_1589",
+  "pos": "A person picks up a red marker, removes its cap, and turns a lined notebook toward themselves on a red table.",
+  "negs": [
+   "A person picks up a red marker, puts its cap on, and turns a lined notebook toward themselves on a red table.",
+   "A person picks up a blue marker, removes its cap, and turns a lined notebook toward themselves on a red table.",
+   "A person picks up a red marker, removes its cap, and turns a lined notebook away from themselves on a red table.",
+   "A person picks up a red marker, removes its cap, and turns a plain notebook toward themselves on a white table."
+  ]
+ },
+ {
+  "episode": "episode_1641",
+  "pos": "A person holds up a white bra and places it on the right side of a wooden table, then shows a paperback book and lays it beside the bra.",
+  "negs": [
+   "A person holds up a white bra and places it on the left side of a wooden table, then shows a paperback book and lays it beside the bra.",
+   "A person holds up a black bra and places it on the right side of a wooden table, then shows a paperback book and lays it beside the bra.",
+   "A person shows a paperback book and places it on the right side of a wooden table, then holds up a white bra and lays it beside the book.",
+   "A person holds up a white bra and places it on the right side of a wooden table, then shows a paperback book and puts it back in a bag."
+  ]
+ },
+ {
+  "episode": "episode_1705",
+  "pos": "A gray cutting board rests at an incline with its right edge supported by a thick book.",
+  "negs": [
+   "A gray cutting board rests at an incline with its left edge supported by a thick book.",
+   "A gray cutting board lies flat with its right edge resting beside a thick book.",
+   "A white cutting board rests at an incline with its right edge supported by a thick book.",
+   "A gray cutting board rests at an incline with its right edge supported by a thin box."
+  ]
+ },
+ {
+  "episode": "episode_1730",
+  "pos": "A person lifts a black hair dryer from a red-covered table and holds it with its nozzle angled upward.",
+  "negs": [
+   "A person lifts a black hair dryer from a red-covered table and holds it with its nozzle angled downward.",
+   "A person lifts a white hair dryer from a red-covered table and holds it with its nozzle angled upward.",
+   "A person sets a black hair dryer down on a red-covered table with its nozzle angled upward.",
+   "A person lifts a black hair dryer from a blue-covered table and holds it with its nozzle angled upward."
+  ]
+ },
+ {
+  "episode": "episode_1755",
+  "pos": "A person lifts a bottle of dark liquid and twists its orange cap while holding the bottle beside a tall clear glass.",
+  "negs": [
+   "A person lifts a bottle of dark liquid and twists its orange cap while holding the bottle beside a short clear glass.",
+   "A person lifts a bottle of dark liquid and twists on its green cap while holding the bottle beside a tall clear glass.",
+   "A person lifts a bottle of clear liquid and twists its orange cap while holding the bottle beside a tall clear glass.",
+   "A person lifts a bottle of dark liquid, pours it into a tall clear glass, and twists its orange cap."
+  ]
+ },
+ {
+  "episode": "episode_1800",
+  "pos": "A person holds a yellow lemon in one hand, turns it to show different sides, and brings it close to the camera before setting it on the counter.",
+  "negs": [
+   "A person holds a green lime in one hand, turns it to show different sides, and brings it close to the camera before setting it on the counter.",
+   "A person holds a yellow lemon in one hand, turns it to show different sides, and cuts it in half before setting it on the counter.",
+   "A person holds a yellow lemon in both hands, keeps one side facing the camera, and brings it close to the camera before setting it on the counter.",
+   "A person holds a yellow lemon in one hand, turns it to show different sides, and puts it in a bag instead of setting it on the counter."
+  ]
+ },
+ {
+  "episode": "episode_1828",
+  "pos": "A turquoise tape measure sits on a wooden table.",
+  "negs": [
+   "A turquoise tape measure sits on a glass table.",
+   "A red tape measure sits on a wooden table.",
+   "A turquoise tape measure hangs from the edge of a wooden table.",
+   "A turquoise ruler sits on a wooden table."
+  ]
+ },
+ {
+  "episode": "episode_1870",
+  "pos": "A person takes an egg from a tray, cracks it open over a yellow bowl and leaves a shell half on the table.",
+  "negs": [
+   "A person takes an egg from a tray, cracks it open over a yellow bowl and drops both shell halves into the bowl.",
+   "A person takes an egg from a tray, places it whole into a yellow bowl and leaves the shell on the table.",
+   "A person takes an egg from a bowl, cracks it open over a yellow tray and leaves a shell half on the table.",
+   "A person takes an egg from a tray, cracks it open over a blue bowl and leaves a shell half on the table."
+  ]
+ },
+ {
+  "episode": "episode_1915",
+  "pos": "A person holds both fists side by side above a wooden table, then opens their palms to show a dark X on one hand.",
+  "negs": [
+   "A person holds both fists side by side above a wooden table, then opens their palms to show a dark X on both hands.",
+   "A person holds both palms open side by side above a wooden table, then closes them into fists to hide a dark X on one hand.",
+   "A person holds both fists side by side above a glass table, then opens their palms to show a dark circle on one hand.",
+   "A person holds both fists one above the other over a wooden table, then opens their palms to show a dark X on one hand."
+  ]
+ },
+ {
+  "episode": "episode_1934",
+  "pos": "A person spreads light green drawstring trousers lengthwise across a wooden coffee table beside a green-strapped watch.",
+  "negs": [
+   "A person spreads light green drawstring trousers crosswise across a wooden coffee table beside a green-strapped watch.",
+   "A person spreads light green drawstring trousers lengthwise across a wooden coffee table beside a red-strapped watch.",
+   "A person folds light green drawstring trousers into a bundle on a wooden coffee table beside a green-strapped watch.",
+   "A person spreads dark green drawstring trousers lengthwise across a glass coffee table beside a green-strapped watch."
+  ]
+ },
+ {
+  "episode": "episode_1960",
+  "pos": "A blue cylinder lies across a wooden board with a thin cord wrapped around its middle.",
+  "negs": [
+   "A blue cylinder stands upright on a wooden board with a thin cord wrapped around its middle.",
+   "A red cylinder lies across a wooden board with a thin cord wrapped around its middle.",
+   "A blue cylinder lies across a wooden board with a thin cord wrapped around one end.",
+   "A blue cylinder lies across a metal board with a thick rope wrapped around its middle."
+  ]
+ },
+ {
+  "episode": "episode_2030",
+  "pos": "A person briefly handles a yellow tea box beside a mug, then moves two slices of bread onto a patterned plate and separates them.",
+  "negs": [
+   "A person briefly handles a yellow tea box beside a mug, then moves two slices of bread onto a patterned plate and stacks them.",
+   "A person briefly handles a yellow tea box beside a mug, then moves two slices of bread into a bowl and separates them.",
+   "A person moves two slices of bread onto a patterned plate and separates them, then briefly handles a yellow tea box beside a mug.",
+   "A person briefly handles a red tea box beside a mug, then moves three slices of bread onto a patterned plate and separates them."
+  ]
+ },
+ {
+  "episode": "episode_2055",
+  "pos": "A person pushes a white cylinder lying on its side across a dark-covered table, lets it roll, and moves it back for another release.",
+  "negs": [
+   "A person pushes a white cylinder standing on its end across a dark-covered table, lets it slide, and moves it back for another release.",
+   "A person pushes a white cylinder lying on its side across a dark-covered table, lets it roll, and leaves it where it stops.",
+   "A person pushes a black cylinder lying on its side across a dark-covered table, lets it roll, and moves it back for another release.",
+   "A person pushes a white cylinder lying on its side across a light-covered table, lets it roll off the edge, and moves it back for another release."
+  ]
+ },
+ {
+  "episode": "episode_2098",
+  "pos": "A person fits a red cap onto a blue aerosol can and stands it beside a green lamp.",
+  "negs": [
+   "A person fits a red cap onto a blue aerosol can and stands it beside a yellow lamp.",
+   "A person removes a red cap from a blue aerosol can and sets it beside a green lamp.",
+   "A person fits a green cap onto a blue aerosol can and stands it beside a green lamp.",
+   "A person fits a red cap onto a blue aerosol can and lays it on its side in front of a green lamp."
+  ]
+ },
+ {
+  "episode": "episode_2151",
+  "pos": "A person balances a broad beige lid across the mouth of a tall plastic bottle.",
+  "negs": [
+   "A person balances a narrow beige lid across the mouth of a tall plastic bottle.",
+   "A person balances a broad beige lid across the mouth of a short plastic bottle.",
+   "A person screws a broad beige lid tightly onto the mouth of a tall plastic bottle.",
+   "A person balances a broad beige lid across the mouth of a tall glass bottle."
+  ]
+ },
+ {
+  "episode": "episode_2193",
+  "pos": "A person picks up and releases the inline switch of a pink lamp, then opens a small notebook and closes it again.",
+  "negs": [
+   "A person picks up and releases the inline switch of a pink lamp, then opens a small notebook and leaves it open.",
+   "A person picks up and releases the inline switch of a blue lamp, then opens a small notebook and closes it again.",
+   "A person opens a small notebook and closes it again, then picks up and releases the inline switch of a pink lamp.",
+   "A person picks up and releases the plug of a pink lamp, then opens a large notebook and closes it again."
+  ]
+ },
+ {
+  "episode": "episode_2230",
+  "pos": "A black-gloved hand places an orange toy car on a white surface with a pale ribbon tied around it.",
+  "negs": [
+   "A black-gloved hand places an orange toy car on a white surface with a dark ribbon tied around it.",
+   "A bare hand places an orange toy car on a white surface with a pale ribbon tied around it.",
+   "A black-gloved hand places a blue toy car on a white surface with a pale ribbon tied around it.",
+   "A black-gloved hand lifts an orange toy car off a white surface with a pale ribbon tied around it."
+  ]
+ },
+ {
+  "episode": "episode_2309",
+  "pos": "A person gives a blue ball short pushes across the colorful cloth on a small wooden table, picking it up and returning it to the right side between rolls.",
+  "negs": [
+   "A person gives a blue ball short pushes across the colorful cloth on a small wooden table, picking it up and returning it to the left side between rolls.",
+   "A person gives a red ball short pushes across the colorful cloth on a small wooden table, picking it up and returning it to the right side between rolls.",
+   "A person gives a blue ball one long push across the colorful cloth on a small wooden table and lets it roll off the edge.",
+   "A person gives a blue ball short pushes across the plain cloth on a large wooden table, picking it up and returning it to the right side between rolls."
+  ]
+ },
+ {
+  "episode": "episode_2328",
+  "pos": "A person lays a blue pen horizontally near the center of a wooden table, beside a printed sheet and a red pen.",
+  "negs": [
+   "A person lays a blue pen vertically near the center of a wooden table, beside a printed sheet and a red pen.",
+   "A person lays a red pen horizontally near the center of a wooden table, beside a printed sheet and a blue pen.",
+   "A person lays a blue pen horizontally near the edge of a wooden table, beside a printed sheet and a black pen.",
+   "A person lays a blue pen horizontally near the center of a wooden table and removes a printed sheet and a red pen."
+  ]
+ },
+ {
+  "episode": "episode_2371",
+  "pos": "A person presents a red apple on an open palm and sets it on the wooden table beside the water bottle.",
+  "negs": [
+   "A person presents a green apple on an open palm and sets it on the wooden table beside the water bottle.",
+   "A person presents a red apple on a closed fist and sets it on the wooden table beside the water bottle.",
+   "A person presents a red apple on an open palm and sets it on the wooden table behind the water bottle.",
+   "A person presents a red apple on an open palm and puts it into a bag beside the water bottle."
+  ]
+ },
+ {
+  "episode": "episode_2423",
+  "pos": "A person lifts the clear bottle, twists off its cap, and sets the cap beside the mug.",
+  "negs": [
+   "A person lifts the clear bottle, twists on its cap, and sets the bottle beside the mug.",
+   "A person lifts the clear bottle, twists off its cap, and sets the cap inside the mug.",
+   "A person lifts the green bottle, twists off its cap, and sets the cap beside the mug.",
+   "A person lifts the clear bottle, twists off its cap, and drinks from it before setting the cap beside the mug."
+  ]
+ },
+ {
+  "episode": "episode_2449",
+  "pos": "A woman places a small yellow triangle on the right side of the wooden table and adjusts its position with her fingertips.",
+  "negs": [
+   "A woman places a small yellow triangle on the left side of the wooden table and adjusts its position with her fingertips.",
+   "A woman places a small yellow square on the right side of the wooden table and adjusts its position with her fingertips.",
+   "A man places a small yellow triangle on the right side of the wooden table and adjusts its position with his fingertips.",
+   "A woman places a small yellow triangle on the right side of the wooden table and picks it up again with her fingertips."
+  ]
+ },
+ {
+  "episode": "episode_2502",
+  "pos": "A seated person shifts a thick dark book forward on a patterned surface, then lifts a second illustrated book and holds it above the table.",
+  "negs": [
+   "A seated person shifts a thin dark book forward on a patterned surface, then lifts a second illustrated book and holds it above the table.",
+   "A seated person shifts a thick dark book backward on a patterned surface, then lifts a second illustrated book and holds it above the table.",
+   "A seated person shifts a thick dark book forward on a patterned surface, then lifts a second illustrated book and puts it in a bag.",
+   "A standing person shifts a thick dark book forward on a plain surface, then lifts a second illustrated book and holds it above the table."
+  ]
+ },
+ {
+  "episode": "episode_2530",
+  "pos": "A person places a small red toy truck on a wooden table, then lifts one end of a thin book to make a ramp.",
+  "negs": [
+   "A person places a small red toy truck on a wooden table, then lifts one end of a thick book to make a ramp.",
+   "A person places a small blue toy truck on a wooden table, then lifts one end of a thin book to make a ramp.",
+   "A person lifts one end of a thin book to make a ramp, then places a small red toy truck on a wooden table.",
+   "A person places a small red toy truck on a glass table, then lays a thin book flat in front of it."
+  ]
+ },
+ {
+  "episode": "episode_2596",
+  "pos": "A person moves a small gold spiked ball attached to a string across a cluttered tabletop, drawing it toward the left wall.",
+  "negs": [
+   "A person moves a small gold spiked ball attached to a string across a cluttered tabletop, drawing it toward the right wall.",
+   "A person moves a small silver spiked ball attached to a string across a cluttered tabletop, drawing it toward the left wall.",
+   "A person moves a small gold smooth ball attached to a string across a clear tabletop, drawing it toward the left wall.",
+   "A person drops a small gold spiked ball attached to a string onto a cluttered tabletop and lets it rest near the left wall."
+  ]
+ },
+ {
+  "episode": "episode_2679",
+  "pos": "A person opens both palms above a wood-patterned table, showing a small blue cross on one palm and an unmarked other hand.",
+  "negs": [
+   "A person opens both palms above a wood-patterned table, showing a small blue cross on each palm.",
+   "A person opens both palms above a wood-patterned table, showing a small red cross on one palm and an unmarked other hand.",
+   "A person closes both hands into fists above a wood-patterned table, hiding a small blue cross on one palm.",
+   "A person opens both palms above a plain white table, showing a small blue circle on one palm and an unmarked other hand."
+  ]
+ },
+ {
+  "episode": "episode_2719",
+  "pos": "A person lifts the yellow mug from the glass shelf, showing clear space beneath it, and puts it back.",
+  "negs": [
+   "A person lifts the yellow mug from the glass shelf, showing a coin beneath it, and puts it back.",
+   "A person lifts the yellow mug from the glass shelf, showing clear space beneath it, and sets it on the floor.",
+   "A person lifts the green mug from the glass shelf, showing clear space beneath it, and puts it back.",
+   "A person lifts the yellow mug from the wooden shelf, showing clear space beneath it, and puts it back."
+  ]
+ },
+ {
+  "episode": "episode_2751",
+  "pos": "A seated person pushes an orange across the red tablecloth toward the remote control on the right.",
+  "negs": [
+   "A seated person pushes an orange across the red tablecloth toward the remote control on the left.",
+   "A seated person pushes a lemon across the red tablecloth toward the remote control on the right.",
+   "A standing person pushes an orange across the blue tablecloth toward the remote control on the right.",
+   "A seated person pushes an orange across the red tablecloth away from the remote control on the right."
+  ]
+ },
+ {
+  "episode": "episode_2788",
+  "pos": "A person shakes out a white shopping bag near an open door, dropping a small pale item onto the wooden floor before putting the bag down beside it.",
+  "negs": [
+   "A person shakes out a white shopping bag near a closed door, dropping a small pale item onto the wooden floor before putting the bag down beside it.",
+   "A person shakes out a black shopping bag near an open door, dropping a small pale item onto the wooden floor before putting the bag down beside it.",
+   "A person shakes out a white shopping bag near an open door, dropping a small pale item onto the wooden floor before picking it up again.",
+   "A person puts a small pale item into a white shopping bag near an open door, then puts the bag down on the wooden floor."
+  ]
+ },
+ {
+  "episode": "episode_2859",
+  "pos": "A person moves the two bread slices from above the bowl onto the patterned plate and lays them side by side.",
+  "negs": [
+   "A person moves the two bread slices from the patterned plate onto the bowl and lays them side by side.",
+   "A person moves the two bread slices from above the bowl onto the patterned plate and stacks them on top of each other.",
+   "A person moves the three bread slices from above the bowl onto the patterned plate and lays them side by side.",
+   "A person moves the two bread slices from above the bowl onto the plain plate and lays them side by side."
+  ]
+ },
+ {
+  "episode": "episode_2884",
+  "pos": "A hand holds a bright yellow baseball cap with blue lettering in front of a living-room table, then removes it from view.",
+  "negs": [
+   "A hand holds a bright yellow baseball cap with blue lettering in front of a living-room table, then places it on the table.",
+   "A hand holds a bright red baseball cap with blue lettering in front of a living-room table, then removes it from view.",
+   "A hand holds a bright yellow baseball cap with blue lettering in front of a kitchen table, then puts it on a head.",
+   "A hand holds a bright yellow baseball cap with white lettering behind a living-room table, then removes it from view."
+  ]
+ },
+ {
+  "episode": "episode_2932",
+  "pos": "A seated person holds a fork upright above an open palm, then takes it out of view.",
+  "negs": [
+   "A seated person holds a fork upright above a closed fist, then takes it out of view.",
+   "A standing person holds a fork upright above an open palm, then takes it out of view.",
+   "A seated person holds a spoon upright above an open palm, then takes it out of view.",
+   "A seated person holds a fork upright above an open palm, then lays it on the table."
+  ]
+ },
+ {
+  "episode": "episode_2994",
+  "pos": "A person sets a small green ball on the patterned tablecloth and leaves it near the back of the table.",
+  "negs": [
+   "A person sets a small green ball on the patterned tablecloth and leaves it near the front of the table.",
+   "A person sets a small red ball on the patterned tablecloth and leaves it near the back of the table.",
+   "A person picks up a small green ball from the patterned tablecloth and takes it away from the back of the table.",
+   "A person sets a small green ball on the plain tablecloth and rolls it toward the back of the table."
+  ]
+ },
+ {
+  "episode": "episode_3032",
+  "pos": "A person rests a hand on an open book beside a lit desk lamp, then reaches down and pulls the lamp's plug from the wall socket.",
+  "negs": [
+   "A person rests a hand on a closed book beside a lit desk lamp, then reaches down and pulls the lamp's plug from the wall socket.",
+   "A person rests a hand on an open book beside an unlit desk lamp, then reaches down and plugs the lamp into the wall socket.",
+   "A person rests a hand on an open book beside a lit desk lamp, then reaches up and presses the switch on the lamp's head.",
+   "A person lifts an open book beside a lit desk lamp, then reaches down and pulls the lamp's plug from the wall socket."
+  ]
+ },
+ {
+  "episode": "episode_3049",
+  "pos": "A person lifts the thin reddish book from the floor and moves the open pink bottle into position.",
+  "negs": [
+   "A person lifts the thin reddish book from the floor and moves the closed pink bottle into position.",
+   "A person lifts the thick reddish book from the floor and moves the open pink bottle into position.",
+   "A person lifts the thin reddish book from the floor and moves the open blue bottle into position.",
+   "A person puts the thin reddish book on the floor and moves the open pink bottle into position."
+  ]
+ },
+ {
+  "episode": "episode_3072",
+  "pos": "A hand places a metal spoon near the front of an empty wooden coffee table and a small red tomato near the back.",
+  "negs": [
+   "A hand places a metal spoon near the back of an empty wooden coffee table and a small red tomato near the front.",
+   "A hand places a plastic spoon near the front of an empty wooden coffee table and a small red tomato near the back.",
+   "A hand places a metal spoon near the front of an empty wooden coffee table and a small green tomato near the back.",
+   "A hand places a metal spoon near the front of a cluttered wooden coffee table and removes a small red tomato from the back."
+  ]
+ },
+ {
+  "episode": "episode_3107",
+  "pos": "A person lays a green capped marker horizontally in the middle of the wooden tray.",
+  "negs": [
+   "A person lays a green capped marker vertically in the middle of the wooden tray.",
+   "A person lays a red capped marker horizontally in the middle of the wooden tray.",
+   "A person lays a green capped marker horizontally at the edge of the metal tray.",
+   "A person lifts a green capped marker out of the middle of the wooden tray."
+  ]
+ },
+ {
+  "episode": "episode_3159",
+  "pos": "A cat sits among several cups on a table while a person reaches into a clear bag of white pieces.",
+  "negs": [
+   "A cat sits among several cups on a table while a person reaches into a clear bag of black pieces.",
+   "A dog sits among several cups on a table while a person reaches into a clear bag of white pieces.",
+   "A cat sleeps beside several bowls on a table while a person reaches into a clear bag of white pieces.",
+   "A cat sits among several cups on a table while a person pours white pieces out of a clear bag."
+  ]
+ },
+ {
+  "episode": "episode_3180",
+  "pos": "A seated person shows three slender writing tools one after another above the floral tablecloth, setting each aside before taking the next.",
+  "negs": [
+   "A seated person shows three slender writing tools one after another above the floral tablecloth, keeping all of them in hand before taking the next.",
+   "A seated person shows two slender writing tools one after another above the floral tablecloth, setting each aside before taking the next.",
+   "A seated person shows three slender writing tools all at once above the plain tablecloth, setting each aside before taking the next.",
+   "A standing person shows three slender writing tools one after another above the floral tablecloth, then gathers them into a cup."
+  ]
+ },
+ {
+  "episode": "episode_3232",
+  "pos": "A person adjusts colorful letters spelling AMOR on the table, opens a tea box, and lowers a tea bag into a black mug.",
+  "negs": [
+   "A person adjusts colorful letters spelling AMOR on the table, opens a tea box, and lowers a tea bag into a white mug.",
+   "A person adjusts colorful letters spelling ROMA on the table, opens a tea box, and lowers a tea bag into a black mug.",
+   "A person opens a tea box, lowers a tea bag into a black mug, and then adjusts colorful letters spelling AMOR on the table.",
+   "A person adjusts colorful letters spelling AMOR on the table, closes a tea box, and lifts a tea bag out of a black mug."
+  ]
+ },
+ {
+  "episode": "episode_3292",
+  "pos": "A person opens a tan wallet on a desk beside a brown handbag, picks up the banknotes lying nearby, and pushes them into the wallet's compartment.",
+  "negs": [
+   "A person opens a tan wallet on a desk beside a brown handbag, picks up the banknotes lying nearby, and pulls them out of the wallet's compartment.",
+   "A person closes a tan wallet on a desk beside a brown handbag, picks up the banknotes lying nearby, and puts them in the handbag.",
+   "A person opens a black wallet on a desk beside a brown handbag, picks up the banknotes lying nearby, and pushes them into the wallet's compartment.",
+   "A person opens a tan wallet on a desk beside a brown handbag, picks up the coins lying nearby, and pushes them into the wallet's compartment."
+  ]
+ },
+ {
+  "episode": "episode_3332",
+  "pos": "A seated person lifts and replaces three small white cups that stand inverted on a wooden table, then shuffles their positions with both hands.",
+  "negs": [
+   "A seated person lifts and replaces two small white cups that stand inverted on a wooden table, then shuffles their positions with both hands.",
+   "A seated person lifts and replaces three small white cups that stand upright on a wooden table, then shuffles their positions with both hands.",
+   "A seated person lifts and replaces three small white cups that stand inverted on a wooden table, then stacks them into a tower.",
+   "A standing person lifts and replaces three small red cups that stand inverted on a glass table, then shuffles their positions with one hand."
+  ]
+ },
+ {
+  "episode": "episode_3355",
+  "pos": "A person lifts a black tile marked with a white H and sets it back on the wooden table.",
+  "negs": [
+   "A person lifts a black tile marked with a white H and sets it back on the wooden table upside down.",
+   "A person lifts a white tile marked with a black H and sets it back on the wooden table.",
+   "A person lifts a black tile marked with a white K and sets it back on the wooden table.",
+   "A person lifts a black tile marked with a white H and slides it off the edge of the wooden table."
+  ]
+ },
+ {
+  "episode": "episode_3374",
+  "pos": "A barefoot person bends near an open doorway and puts small crumpled white pieces on the tiled floor by the door.",
+  "negs": [
+   "A barefoot person bends near a closed doorway and puts small crumpled white pieces on the tiled floor by the door.",
+   "A person wearing shoes bends near an open doorway and puts small crumpled white pieces on the tiled floor by the door.",
+   "A barefoot person bends near an open doorway and picks up small crumpled white pieces from the tiled floor by the door.",
+   "A barefoot person bends near an open doorway and puts small crumpled white pieces on a wooden table by the door."
+  ]
+ },
+ {
+  "episode": "episode_3409",
+  "pos": "Hands display a small wooden bird-shaped carving, a blue fabric strap, and the carving again above a round table, removing each after showing it.",
+  "negs": [
+   "Hands display a small wooden bird-shaped carving, a blue fabric strap, and a second blue strap above a round table, removing each after showing it.",
+   "Hands display a small blue fabric strap, a wooden bird-shaped carving, and the strap again above a round table, removing each after showing it.",
+   "Hands display a small wooden bird-shaped carving, a blue fabric strap, and the carving again above a square table, leaving each on the table after showing it.",
+   "Hands display a small metal bird-shaped carving, a red fabric strap, and the carving again above a round table, removing each after showing it."
+  ]
+ },
+ {
+  "episode": "episode_3450",
+  "pos": "A hand moves over an empty red mat, then places a white faucet assembly on its side near the center.",
+  "negs": [
+   "A hand moves over an empty red mat, then places a white faucet assembly upright near the center.",
+   "A hand moves over an empty blue mat, then places a white faucet assembly on its side near the center.",
+   "A hand moves over a red mat holding a faucet assembly, then removes the white faucet assembly from near the center.",
+   "A hand moves over an empty red mat, then places a white faucet assembly on its side near the corner."
+  ]
+ },
+ {
+  "episode": "episode_3501",
+  "pos": "A person moves clothing from the far end of a checkered table into a stack at the front.",
+  "negs": [
+   "A person moves clothing from the front of a checkered table into a stack at the far end.",
+   "A person moves clothing from the far end of a checkered table into a spread-out layer at the front.",
+   "A person moves clothing from the far end of a plain table into a stack at the front.",
+   "A person moves towels from the far end of a checkered table into a stack at the front."
+  ]
+ },
+ {
+  "episode": "episode_3544",
+  "pos": "A seated person lifts a pile containing denim shorts and pale clothing from the table and takes it to the right.",
+  "negs": [
+   "A seated person lifts a pile containing denim shorts and pale clothing from the table and takes it to the left.",
+   "A seated person lifts a pile containing denim jeans and dark clothing from the table and takes it to the right.",
+   "A standing person lifts a pile containing denim shorts and pale clothing from the table and takes it to the right.",
+   "A seated person lifts a pile containing denim shorts and pale clothing from the floor and puts it on the table."
+  ]
+ },
+ {
+  "episode": "episode_3578",
+  "pos": "A person stands behind a wooden table and brings their hands together in front of their body, briefly clasping the fingers.",
+  "negs": [
+   "A person stands behind a wooden table and brings their hands together in front of their body, then pulls them apart without clasping.",
+   "A person sits behind a wooden table and brings their hands together in front of their body, briefly clasping the fingers.",
+   "A person stands behind a wooden table and keeps their hands apart at their sides without clasping the fingers.",
+   "A person stands in front of a wooden table and brings their hands together behind their back, briefly clasping the fingers."
+  ]
+ },
+ {
+  "episode": "episode_3597",
+  "pos": "A person removes the cap from a blue pen and draws several lines on a white sheet, holding the paper steady with the other hand.",
+  "negs": [
+   "A person puts the cap onto a blue pen and draws several lines on a white sheet, holding the paper steady with the other hand.",
+   "A person removes the cap from a red pen and draws several lines on a white sheet, holding the paper steady with the other hand.",
+   "A person removes the cap from a blue pen and draws several lines on a white sheet without holding the paper steady.",
+   "A person removes the cap from a blue pen and writes a single word on a yellow sheet, holding the paper steady with the other hand."
+  ]
+ },
+ {
+  "episode": "episode_3619",
+  "pos": "A person reaches into a crumpled brown paper bag and takes out a long gold-colored case, showing it before laying it on the table.",
+  "negs": [
+   "A person reaches into a crumpled brown paper bag and takes out a short silver case, showing it before laying it on the table.",
+   "A person reaches into a crumpled white plastic bag and takes out a long gold-colored case, showing it before laying it on the table.",
+   "A person reaches into a crumpled brown paper bag and takes out a long gold-colored case, then puts it back without showing it.",
+   "A person puts a long gold-colored case into a crumpled brown paper bag, showing it before leaving it on the table."
+  ]
+ },
+ {
+  "episode": "episode_3663",
+  "pos": "A person touches the desk lamp’s base, turning on the light, then opens the illustrated book to a detailed line drawing.",
+  "negs": [
+   "A person touches the desk lamp's base, turning off the light, then opens the illustrated book to a detailed line drawing.",
+   "A person touches the desk lamp's base, turning on the light, then closes the illustrated book on a detailed line drawing.",
+   "A person opens the illustrated book to a detailed line drawing, then touches the desk lamp's base, turning on the light.",
+   "A person touches the desk lamp's shade, turning on the light, then opens the illustrated book to a blank page."
+  ]
+ },
+ {
+  "episode": "episode_3689",
+  "pos": "A person reaches to the wall socket behind the chair, pulls out the hair dryer’s plug and lowers the loose cord.",
+  "negs": [
+   "A person reaches to the wall socket behind the chair, plugs in the hair dryer and lowers the loose cord.",
+   "A person reaches to the wall socket behind the table, pulls out the hair dryer's plug and lowers the loose cord.",
+   "A person reaches to the wall socket behind the chair, pulls out the lamp's plug and lowers the loose cord.",
+   "A person reaches to the wall socket behind the chair, pulls out the hair dryer's plug and lays the cord over the chair."
+  ]
+ },
+ {
+  "episode": "episode_3740",
+  "pos": "A person reaches over the white tablecloth and displays a bunch of green grapes, holding it by the stem before lifting it away.",
+  "negs": [
+   "A person reaches over the white tablecloth and displays a bunch of red grapes, holding it by the stem before lifting it away.",
+   "A person reaches over the white tablecloth and displays a bunch of green grapes, then sets it down on the tablecloth.",
+   "A person reaches over the red tablecloth and displays a bunch of green grapes, holding it by the stem before lifting it away.",
+   "A person reaches over the white tablecloth and displays a single green grape, holding it between two fingers before lifting it away."
+  ]
+ },
+ {
+  "episode": "episode_3779",
+  "pos": "A person seated behind a table holds a bunch of dark grapes close to the camera and sets it back down.",
+  "negs": [
+   "A person seated behind a table holds a bunch of green grapes close to the camera and sets it back down.",
+   "A person standing behind a table holds a bunch of dark grapes close to the camera and sets it back down.",
+   "A person seated behind a table holds a bunch of dark grapes far from the camera and sets it back down.",
+   "A person seated behind a table holds a bunch of dark grapes close to the camera and eats one before setting it back down."
+  ]
+ },
+ {
+  "episode": "episode_3808",
+  "pos": "A person types on the laptop, changing the blank document to a large W and then the full sequence WKIDUN.",
+  "negs": [
+   "A person types on the laptop, changing the blank document to a large W and then the full sequence WKIDNU.",
+   "A person types on the laptop, changing the blank document to a small w and then the full sequence WKIDUN.",
+   "A person types on the laptop, changing the blank document to a large K and then the full sequence WKIDUN.",
+   "A person types on the laptop, changing the blank document to a large W and then deleting it to leave the document blank."
+  ]
+ },
+ {
+  "episode": "episode_3875",
+  "pos": "A person lowers a dark blue garment with a lace edge onto the right side of the carpet.",
+  "negs": [
+   "A person lowers a dark blue garment with a lace edge onto the left side of the carpet.",
+   "A person lowers a dark blue garment with a lace edge onto the right side of the wooden floor.",
+   "A person lifts a dark blue garment with a lace edge from the right side of the carpet.",
+   "A person lowers a light blue garment with a lace edge onto the right side of the carpet."
+  ]
+ },
+ {
+  "episode": "episode_3897",
+  "pos": "A person unscrews the white cap from a milk carton and tips the carton over the patterned cup on the left, pouring a stream into it.",
+  "negs": [
+   "A person screws the white cap onto a milk carton and sets the carton down beside the patterned cup on the left.",
+   "A person unscrews the white cap from a milk carton and tips the carton over the patterned cup on the right, pouring a stream into it.",
+   "A person unscrews the white cap from a juice carton and tips the carton over the patterned cup on the left, pouring a stream into it.",
+   "A person unscrews the white cap from a milk carton and drinks from it, leaving the patterned cup on the left untouched."
+  ]
+ },
+ {
+  "episode": "episode_3978",
+  "pos": "A person places a small gold-lidded jar upright behind the green toy truck.",
+  "negs": [
+   "A person places a small gold-lidded jar on its side behind the green toy truck.",
+   "A person places a small gold-lidded jar upright in front of the green toy truck.",
+   "A person places a small silver-lidded jar upright behind the green toy truck.",
+   "A person places a small gold-lidded jar upright behind the red toy truck."
+  ]
+ },
+ {
+  "episode": "episode_4045",
+  "pos": "A person places one end of a wooden board on a stack of books to make a ramp.",
+  "negs": [
+   "A person places one end of a wooden board on the floor to make a ramp.",
+   "A person places one end of a metal board on a stack of books to make a ramp.",
+   "A person lays a wooden board flat across a stack of books.",
+   "A person removes one end of a wooden board from a stack of books, flattening the ramp."
+  ]
+ },
+ {
+  "episode": "episode_4080",
+  "pos": "A hand slides two inverted metal tumblers around on the floral tablecloth, then lifts the left tumbler to reveal a small orange sharpener.",
+  "negs": [
+   "A hand slides two inverted metal tumblers around on the floral tablecloth, then lifts the right tumbler to reveal a small orange sharpener.",
+   "A hand slides three inverted metal tumblers around on the floral tablecloth, then lifts the left tumbler to reveal a small orange sharpener.",
+   "A hand slides two inverted metal tumblers around on the floral tablecloth, then lifts the left tumbler to reveal nothing underneath.",
+   "A hand slides two upright glass tumblers around on the plain tablecloth, then lifts the left tumbler to reveal a small orange sharpener."
+  ]
+ },
+ {
+  "episode": "episode_4118",
+  "pos": "A person takes the light gray garment from the top of a clothing pile, folds it, and sets it at the front of the table.",
+  "negs": [
+   "A person takes the light gray garment from the bottom of a clothing pile, folds it, and sets it at the front of the table.",
+   "A person takes the dark gray garment from the top of a clothing pile, folds it, and sets it at the front of the table.",
+   "A person takes the light gray garment from the top of a clothing pile, unfolds it, and sets it at the front of the table.",
+   "A person takes the light gray garment from the top of a clothing pile, folds it, and sets it at the back of the table."
+  ]
+ },
+ {
+  "episode": "episode_4153",
+  "pos": "Hands fold the sleeves and sides of a red shirt inward and turn it into a compact rectangle at one end of the table.",
+  "negs": [
+   "Hands unfold the sleeves and sides of a red shirt outward and spread it flat at one end of the table.",
+   "Hands fold the sleeves and sides of a blue shirt inward and turn it into a compact rectangle at one end of the table.",
+   "Hands fold the sleeves and sides of a red shirt inward and turn it into a compact rectangle in the middle of the floor.",
+   "Hands fold the sleeves of a red shirt inward and then hang it over the edge of the table instead of making a rectangle."
+  ]
+ }
+]
