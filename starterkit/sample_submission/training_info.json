@@ -1,0 +1,29 @@
+{
+  "image_model_id": "facebook/dinov2-base",
+  "text_model_id": "sentence-transformers/all-mpnet-base-v2",
+  "total_available_episodes": 4170,
+  "used_episodes": 12,
+  "train_episodes": 10,
+  "valid_episodes": 2,
+  "demo_subset": true,
+  "feature_signature": "e10d68bcb3d5d57a12e3e25c21be7f3475d49655676cc7eb851b169a2139e036",
+  "negative_sampling": "one random original description from the same split per episode",
+  "epoch": 1,
+  "metrics": {
+    "epoch": 1,
+    "train": {
+      "bce": 0.6877101063728333,
+      "binary_accuracy": 0.55,
+      "pair_accuracy": 0.6,
+      "episodes": 10
+    },
+    "valid": {
+      "bce": 0.6996325254440308,
+      "binary_accuracy": 0.5,
+      "pair_accuracy": 0.5,
+      "episodes": 2
+    }
+  },
+  "encoder_storage_dtype": "float16",
+  "note": "Encoder weights are stored in float16; CPU inference casts them to float32."
+}

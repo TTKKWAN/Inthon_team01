@@ -1,0 +1,6 @@
+# Python 3.11. Install a CUDA build of torch suitable for your GPU when needed.
+torch==2.5.1
+transformers==4.57.3
+numpy==1.26.4
+Pillow==12.3.0
+safetensors>=0.4.3,<1
