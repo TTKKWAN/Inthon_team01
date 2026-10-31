@@ -19,7 +19,7 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 from torch import nn
-from transformers import AutoImageProcessor, AutoModel, AutoTokenizer
+from transformers import AutoImageProcessor, AutoModel, AutoTokenizer, PreTrainedTokenizerFast
 
 IMAGE_MODEL_ID = "facebook/dinov2-base"
 TEXT_MODEL_ID = "sentence-transformers/all-mpnet-base-v2"
@@ -125,6 +125,18 @@ def _load(model_dir, dtype=torch.float32):
     return AutoModel.from_pretrained(model_dir, local_files_only=True, dtype=dtype)
 
 
+def load_siglip_tokenizer(model_dir):
+    """SigLIP's default SiglipTokenizer needs sentencepiece, which is not in the grading
+    environment. Its tokenizer.json gives the same ids through `tokenizers` alone.
+    Only input_ids are returned: SigLIP was trained without an attention mask."""
+    path = Path(model_dir) / "tokenizer.json"
+    if not path.is_file():
+        raise FileNotFoundError(f"SigLIP tokenizer.json missing (rerun download_siglip.py): {path}")
+    return PreTrainedTokenizerFast(tokenizer_file=str(path), eos_token="</s>", pad_token="</s>",
+                                   unk_token="<unk>", model_max_length=64,
+                                   model_input_names=["input_ids"])
+
+
 class FrozenEncoders:
     def __init__(self, image_model_dir, text_model_dir, siglip_model_dir, device="cpu",
                  image_batch_size=32, text_batch_size=64):
@@ -136,8 +148,7 @@ class FrozenEncoders:
         self.siglip_processor = AutoImageProcessor.from_pretrained(
             siglip_model_dir, local_files_only=True, use_fast=False)
         self.tokenizer = AutoTokenizer.from_pretrained(text_model_dir, local_files_only=True)
-        self.siglip_tokenizer = AutoTokenizer.from_pretrained(siglip_model_dir,
-                                                              local_files_only=True)
+        self.siglip_tokenizer = load_siglip_tokenizer(siglip_model_dir)
         self.image_model = _load(image_model_dir)
         self.text_model = _load(text_model_dir)
         self.siglip = _load(siglip_model_dir)
