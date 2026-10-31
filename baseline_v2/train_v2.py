@@ -20,6 +20,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 from model_v2 import OrderAwareScorer
@@ -109,6 +110,9 @@ def train_rows(data, idx, pool, cfg, rng):
         pool_negs = [n for n in group["negs"] if n[0] not in cfg.get("exclude_types", [])]
         negs = rng.sample(pool_negs, min(cfg["hard_negatives"], len(pool_negs)))
         row = [(i, False, group["pos"])] + [(i, False, t) for _, t in negs]
+        if cfg.get("nn_negatives"):
+            # Real GTs of similar episodes: natural wording, so only the video tells them apart.
+            row += [(i, False, t) for t in rng.sample(data.nn[g][i], cfg["nn_negatives"])]
         need = cfg["hard_negatives"] + cfg["random_negatives"] - len(negs)
         while need:
             j = rng.choice(pool)
@@ -120,6 +124,31 @@ def train_rows(data, idx, pool, cfg, rng):
             row.append((i, True, group["pos"]))
         rows.append(row)
     return rows
+
+
+def nn_table(data, pool, group_index, k=20, max_cos=0.9):
+    """Episode -> text ids of the GTs of its k most MPNet-similar other episodes in `pool`
+    (same group index: full or first sentence), skipping near-duplicates (cos >= max_cos)."""
+    pool = [i for i in pool if group_index < len(data.groups[i])]
+    pos = [data.groups[i][group_index]["pos"] for i in pool]
+    emb = F.normalize(data.full[pos, :768].float(), dim=-1)
+    table = {}
+    for s in range(0, len(pool), 1024):
+        sim = emb[s:s + 1024] @ emb.T
+        n = sim.shape[0]
+        sim[torch.arange(n), torch.arange(s, s + n)] = -2
+        sim[sim >= max_cos] = -2
+        for a, top in enumerate(sim.topk(k, dim=1).indices.tolist()):
+            table[pool[s + a]] = [pos[b] for b in top]
+    return table
+
+
+def nn_rows(data, valid, group_index):
+    """Shortcut-free validation: 1 GT + the GTs of the 4 most similar other valid episodes."""
+    table = nn_table(data, valid, group_index, k=4)
+    rows = [[(i, False, data.groups[i][group_index]["pos"])] + [(i, False, t) for t in negs]
+            for i, negs in sorted(table.items())]
+    return rows, [["pos"] + ["nn"] * 4 for _ in rows]
 
 
 def valid_rows(data, valid, group_index, seed):
@@ -209,6 +238,10 @@ def main():
         encoding="utf-8")
     val_sets = {"full": valid_rows(data, valid, 0, cfg["seed"] + 1),
                 "short": valid_rows(data, valid, 1, cfg["seed"] + 2)}
+    if cfg.get("select_nn_val"):
+        val_sets.update({"nn_full": nn_rows(data, valid, 0), "nn_short": nn_rows(data, valid, 1)})
+    if cfg.get("nn_negatives"):
+        data.nn = {g: nn_table(data, train, g) for g in (0, 1)}
 
     model_config = {"frame_dim": data.frames.shape[2], "text_dim": data.full.shape[1],
                     "d_model": cfg["d_model"], "layers": cfg["layers"],
@@ -256,6 +289,9 @@ def main():
         print(json.dumps(metrics), flush=True)
         # Select on the mean of both views: test descriptions may be short or long.
         target = (metrics["full_lb"] + metrics["short_lb"]) / 2
+        if cfg.get("select_nn_val"):
+            # Rule-based val rewards spotting odd wording; average in the shortcut-free NN val.
+            target = (target + (metrics["nn_full_lb"] + metrics["nn_short_lb"]) / 2) / 2
         if run:
             # "full_vs_order" -> "full/vs_order" so wandb groups panels by view.
             run.log({"epoch": epoch, "train/loss": metrics["train_loss"], "val/mean_lb": target,

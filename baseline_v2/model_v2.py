@@ -18,8 +18,10 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
+from safetensors.torch import load_file, save_file
 from torch import nn
-from transformers import AutoImageProcessor, AutoModel, AutoTokenizer
+from transformers import (AutoConfig, AutoImageProcessor, AutoModel, AutoTokenizer,
+                          PreTrainedTokenizerFast)
 
 IMAGE_MODEL_ID = "facebook/dinov2-base"
 TEXT_MODEL_ID = "sentence-transformers/all-mpnet-base-v2"
@@ -121,8 +123,56 @@ class OrderAwareScorer(nn.Module):
         return self.head(out[:, 0]).squeeze(-1)
 
 
+INT8_WEIGHTS = "model_int8.safetensors"
+
+
+def quantize_int8(state):
+    """Per-output-row symmetric int8 for every float weight with >= 2 dims (linear, embedding,
+    conv); 1-d tensors (norms, biases) stay fp16. Roughly halves the fp16 checkpoint."""
+    out = {}
+    for k, v in state.items():
+        v = v.detach().cpu()
+        if v.is_floating_point() and v.ndim >= 2:
+            w = v.float().reshape(v.shape[0], -1)
+            scale = (w.abs().amax(1, keepdim=True) / 127).clamp_min(1e-12)
+            out[k + ".int8"] = (w / scale).round().to(torch.int8).reshape(v.shape).contiguous()
+            out[k + ".scale"] = scale.squeeze(1).half()
+        else:
+            out[k] = (v.half() if v.is_floating_point() else v).contiguous()
+    return out
+
+
+def dequantize_int8(state):
+    out = {}
+    for k, v in state.items():
+        if k.endswith(".scale"):
+            continue
+        if k.endswith(".int8"):
+            name = k[:-len(".int8")]
+            scale = state[name + ".scale"].float().view(-1, *[1] * (v.ndim - 1))
+            out[name] = v.float() * scale
+        else:
+            out[k] = v.float() if v.is_floating_point() else v
+    return out
+
+
 def _load(model_dir, dtype=torch.float32):
+    model_dir = Path(model_dir)
+    if (model_dir / INT8_WEIGHTS).is_file():
+        model = AutoModel.from_config(AutoConfig.from_pretrained(model_dir, local_files_only=True))
+        model.load_state_dict(dequantize_int8(load_file(model_dir / INT8_WEIGHTS)))
+        return model.to(dtype)
     return AutoModel.from_pretrained(model_dir, local_files_only=True, dtype=dtype)
+
+
+def load_siglip_tokenizer(model_dir):
+    """SigLIP's AutoTokenizer is the slow SiglipTokenizer, which needs sentencepiece (not in
+    the grading environment). Its tokenizer.json gives identical ids on every Train text and
+    clause (172,232 checked) using only `tokenizers`. Return input_ids only, like the slow one:
+    SigLIP text was trained without an attention mask and passing one changes its embedding."""
+    return PreTrainedTokenizerFast(tokenizer_file=str(Path(model_dir) / "tokenizer.json"),
+                                   pad_token="</s>", eos_token="</s>", unk_token="<unk>",
+                                   model_input_names=["input_ids"])
 
 
 class FrozenEncoders:
@@ -136,8 +186,7 @@ class FrozenEncoders:
         self.siglip_processor = AutoImageProcessor.from_pretrained(
             siglip_model_dir, local_files_only=True, use_fast=False)
         self.tokenizer = AutoTokenizer.from_pretrained(text_model_dir, local_files_only=True)
-        self.siglip_tokenizer = AutoTokenizer.from_pretrained(siglip_model_dir,
-                                                              local_files_only=True)
+        self.siglip_tokenizer = load_siglip_tokenizer(siglip_model_dir)
         self.image_model = _load(image_model_dir)
         self.text_model = _load(text_model_dir)
         self.siglip = _load(siglip_model_dir)
@@ -213,10 +262,15 @@ class FrozenEncoders:
             i += len(cl)
         return torch.cat([full_mpnet, full_sig], dim=-1), clauses, mask
 
-    def export(self, destination):
+    def export(self, destination, int8=False):
         destination = Path(destination)
         for name, model in [("dinov2", self.image_model), ("mpnet", self.text_model),
                             ("siglip", self.siglip)]:
+            if int8:
+                (destination / name).mkdir(parents=True, exist_ok=True)
+                model.config.save_pretrained(destination / name)
+                save_file(quantize_int8(model.state_dict()), destination / name / INT8_WEIGHTS)
+                continue
             state = {k: v.detach().cpu().half() if v.is_floating_point() else v.detach().cpu()
                      for k, v in model.state_dict().items()}
             model.save_pretrained(destination / name, state_dict=state, safe_serialization=True)

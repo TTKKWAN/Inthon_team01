@@ -3,6 +3,7 @@
 /Train/
 /data/
 *.tar
+/submission/
 
 # Model weights / submission artifacts (too large for git)
 models/

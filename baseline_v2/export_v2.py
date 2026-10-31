@@ -16,6 +16,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "submission_v2")
+    parser.add_argument("--int8", action="store_true",
+                        help="store encoder weights as per-row int8 (~half the ZIP size)")
     args = parser.parse_args()
     out = args.output_dir
     if out.exists() and any(out.iterdir()):
@@ -25,7 +27,7 @@ def main():
     enc = FrozenEncoders(ROOT / cfg["image_model_dir"], ROOT / cfg["text_model_dir"],
                          ROOT / cfg["siglip_model_dir"], "cpu")
     out.mkdir(parents=True, exist_ok=True)
-    enc.export(out / "models")
+    enc.export(out / "models", int8=args.int8)
     (out / "weights").mkdir()
     torch.save(ckpt["state_dict"], out / "weights/scorer.pt")
     for name in ["submission.py", "model_v2.py"]:
