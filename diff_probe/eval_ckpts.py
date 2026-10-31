@@ -24,6 +24,13 @@ from train_marked import Frames, MarkedVerifier, TextEncoder, evaluate  # noqa: 
 
 SETS = ["short/H1_disjoint", "short/H2_samespot", "short/H3_multi", "short/H4_chain",
         "short/H5_mix", "short/H6_fact_a_b_ab_c", "short/H7_fact_a_b_ab_ac", "full/H5_mix"]
+# Which sets choose the epoch (mean on half A). Reports always cover every set on half B.
+CRITERIA = {
+    "H2+H6+H7": ["short/H2_samespot", "short/H6_fact_a_b_ab_c", "short/H7_fact_a_b_ab_ac"],
+    "H3+H4+H5": ["short/H3_multi", "short/H4_chain", "short/H5_mix"],
+    "H2..H7": ["short/H2_samespot", "short/H3_multi", "short/H4_chain", "short/H5_mix",
+               "short/H6_fact_a_b_ab_c", "short/H7_fact_a_b_ab_ac"],
+}
 
 
 def split_halves(valsets):
@@ -55,22 +62,28 @@ def main():
     table = []
     for ck in ckpts:
         model.load_state_dict(torch.load(ck, map_location=args.device)["model"])
-        scores = {k: evaluate(model, text_enc, rows, frames, args.device)["score"]
-                  for k, rows in half_a.items()}
-        mean = sum(scores.values()) / len(scores)
-        table.append({"ckpt": ck.name, "mean_A": round(mean, 4), "A": scores})
-        print(json.dumps(table[-1]), flush=True)
+        row = {"ckpt": ck.name,
+               "A": {k: evaluate(model, text_enc, rows, frames, args.device)["score"]
+                     for k, rows in half_a.items()},
+               "B": {k: evaluate(model, text_enc, rows, frames, args.device)["score"]
+                     for k, rows in half_b.items()}}
+        table.append(row)
+        print(json.dumps(row), flush=True)
 
-    best = max(table, key=lambda r: r["mean_A"])
-    model.load_state_dict(torch.load(args.run / best["ckpt"], map_location=args.device)["model"])
-    report = {}
-    for k, rows in half_b.items():
-        report[k] = {c: evaluate(model, text_enc, rows, frames, args.device, c)
-                     for c in ("normal", "reversed", "other")}
-        print("B", k, json.dumps(report[k]), flush=True)
-    out = {"selected": best["ckpt"], "selection_half_A": table, "report_half_B": report}
+    report, controls = {}, {}
+    for name, sets in CRITERIA.items():
+        best = max(table, key=lambda r: sum(r["A"][s] for s in sets) / len(sets))
+        ck = best["ckpt"]
+        if ck not in controls:  # reversed / other-video only for the chosen checkpoints
+            model.load_state_dict(torch.load(args.run / ck, map_location=args.device)["model"])
+            controls[ck] = {k: {c: evaluate(model, text_enc, rows, frames, args.device, c)["score"]
+                                for c in ("reversed", "other")} for k, rows in half_b.items()}
+        report[name] = {"ckpt": ck,
+                        "select_mean_A": round(sum(best["A"][s] for s in sets) / len(sets), 4),
+                        "B_normal": best["B"], "B_controls": controls[ck]}
+        print("criterion", name, json.dumps(report[name]), flush=True)
+    out = {"criteria": CRITERIA, "per_ckpt": table, "report": report}
     (args.run / "eval_ckpts.json").write_text(json.dumps(out, indent=1))
-    print("selected", best["ckpt"], best["mean_A"])
 
 
 if __name__ == "__main__":
