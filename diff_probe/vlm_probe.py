@@ -104,6 +104,47 @@ class Judge:
         return out
 
 
+@torch.no_grad()
+def text_logprob(judge, frames, texts):
+    """Sum log p(text | frames) as the assistant's answer to a describe prompt."""
+    content = [{"type": "image"} for _ in frames] + [
+        {"type": "text", "text": "Describe what happens in the video."}]
+    user = [{"role": "user", "content": content}]
+    prompt = judge.proc.apply_chat_template(user, add_generation_prompt=True)
+    fulls = [prompt + " " + t + "<end_of_utterance>" for t in texts]
+    judge.proc.tokenizer.padding_side = "right"
+    kwargs = dict(text=[prompt] + fulls, return_tensors="pt", padding=True)
+    if frames:
+        kwargs["images"] = [frames for _ in range(len(fulls) + 1)]
+    batch = judge.proc(**kwargs).to(judge.device)
+    if "pixel_values" in batch:
+        batch["pixel_values"] = batch["pixel_values"].to(judge.model.dtype)
+    start = int(batch["attention_mask"][0].sum())  # prompt length (same prefix for all)
+    t0 = time.time()
+    logits = judge.model(**batch).logits.float()
+    if judge.device.startswith("cuda"):
+        torch.cuda.synchronize()
+    judge.seconds += time.time() - t0
+    judge.calls += 1
+    logp = torch.log_softmax(logits[1:, :-1], dim=-1)
+    target = batch["input_ids"][1:, 1:]
+    tok_lp = logp.gather(-1, target.unsqueeze(-1)).squeeze(-1)
+    mask = batch["attention_mask"][1:, 1:].clone()
+    mask[:, :start - 1] = 0
+    return (tok_lp * mask).sum(-1).tolist()
+
+
+def judge_spot_pmi(judge, frames, variants):
+    """log p(v | frames) - log p(v | no frames): image evidence with the text prior removed.
+    No letters, so no position bias."""
+    with_frames = text_logprob(judge, frames, variants) if frames else [0.0] * len(variants)
+    without = text_logprob(judge, [], variants)
+    pmi = [a - b for a, b in zip(with_frames, without)] if frames else without
+    z = math.log(sum(math.exp(x - max(pmi)) for x in pmi)) + max(pmi)
+    scores = [x - z for x in pmi]
+    return scores, scores, []
+
+
 def judge_spot(judge, frames, variants):
     """Return debiased log-probs per variant, first-order log-probs, chosen positions."""
     k = len(variants)
@@ -126,7 +167,8 @@ def rank_score(scores, pos_index):
     return RANK_SCORE[order.index(pos_index)]
 
 
-def run(judge, rows, data_dir, n_frames, frames_mode, mode, context, seed=0):
+def run(judge, rows, data_dir, n_frames, frames_mode, mode, context, method="mc", seed=0):
+    spot_fn = judge_spot_pmi if method == "pmi" else judge_spot
     rng = random.Random(seed)
     stats = {"spots": 0, "spot_correct": 0, "spot_correct_first": 0, "spot_chance": 0.0,
              "pos_hist": {}, "vlm": 0.0, "cent": 0.0, "vlm_cent": 0.0, "episodes": 0}
@@ -145,15 +187,16 @@ def run(judge, rows, data_dir, n_frames, frames_mode, mode, context, seed=0):
             variants, cv = spot["variants"], spot["choice_variant"]
             if len(variants) > len(LETTERS):
                 continue
-            debiased, first, picked = judge_spot(judge, frames, variants)
+            debiased, first, picked = spot_fn(judge, frames, variants)
             truth = cv[pos_index]
             stats["spots"] += 1
             stats["spot_correct"] += max(range(len(variants)), key=lambda j: debiased[j]) == truth
             stats["spot_correct_first"] += max(range(len(variants)), key=lambda j: first[j]) == truth
             stats["spot_chance"] += 1 / len(variants)
-            hist = stats["pos_hist"].setdefault(str(len(variants)), [0] * len(variants))
-            for p in picked:
-                hist[p] += 1
+            if picked:
+                hist = stats["pos_hist"].setdefault(str(len(variants)), [0] * len(variants))
+                for p in picked:
+                    hist[p] += 1
             for i in range(len(texts)):
                 vlm[i] += debiased[cv[i]]
         # tiny centrality term only breaks VLM ties
@@ -181,6 +224,7 @@ def main():
     ap.add_argument("--sets", nargs="+", default=["short/H1_disjoint", "short/H2_samespot",
                                                   "short/H6_fact_a_b_ab_c", "short/H7_fact_a_b_ab_ac"])
     ap.add_argument("--configs", nargs="+", default=["atoms:3", "merged:4", "merged:full"])
+    ap.add_argument("--methods", nargs="+", default=["mc", "pmi"])
     ap.add_argument("--frames", nargs="+", default=["normal", "reversed", "none"])
     ap.add_argument("--n-frames", type=int, default=8)
     ap.add_argument("--limit", type=int, default=300)
@@ -197,12 +241,15 @@ def main():
         for cfg in args.configs:
             mode, ctx = cfg.split(":")
             ctx = ctx if ctx in ("full", "clause") else int(ctx)
-            for fm in args.frames:
+            for method in args.methods:
+              for fm in args.frames:
+                if method == "pmi" and fm == "none":
+                    continue  # pmi without frames is just the text prior
                 c0, t0, w0 = judge.calls, judge.seconds, time.time()
                 m0 = len(judge.letter_mass)
-                r = run(judge, rows, args.data_dir, args.n_frames, fm, mode, ctx)
+                r = run(judge, rows, args.data_dir, args.n_frames, fm, mode, ctx, method)
                 mass = judge.letter_mass[m0:]
-                r.update({"set": set_name, "config": cfg, "frames": fm,
+                r.update({"set": set_name, "config": cfg, "method": method, "frames": fm,
                           "letter_mass": round(sum(mass) / max(len(mass), 1), 3),
                           "forward_calls": judge.calls - c0,
                           "forward_seconds": round(judge.seconds - t0, 1),
