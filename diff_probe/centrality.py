@@ -12,11 +12,7 @@ Higher score = closer to the other choices = more likely the unedited descriptio
 
 import difflib
 import re
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hyuwooma"))
-from submission import normalized_byte_distance  # noqa: E402
 
 TOKEN = re.compile(r"[a-z0-9']+")
 
@@ -65,6 +61,10 @@ def _mean_scores(items, dist):
 
 
 def score_byte(texts):
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hyuwooma"))
+    from submission import normalized_byte_distance
     return _mean_scores([t.encode("utf-8") for t in texts], normalized_byte_distance)
 
 
