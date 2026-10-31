@@ -1,12 +1,12 @@
-"""Collect 5-choice validation sets (626 valid episodes) into claude_val/sets/ in one format.
+"""Collect 5-choice validation sets (626 valid episodes) into validator/sets/ in one format.
 
-  claude_short : first-sentence GT + 4 negatives written by Claude (claude_val/parts/part_*.json).
+  claude_short : first-sentence GT + 4 negatives written by Claude (validator/parts/part_*.json).
                  VALIDATION ONLY, the user allowed Claude-written data here. Never train on it.
   qwen_full/short : GT + 4 of the Qwen3-4B negatives in team01's bank_qval
                  (huggingface SANGchu-03/INThon_Augmented, merged/bank_qval.json), seed-sampled.
   af_full      : baseline_v2/validation/val_af_full.json (rule negatives a text model found GT-like).
 
-    python claude_val/build_sets.py
+    python validator/build_sets.py
 """
 
 import difflib

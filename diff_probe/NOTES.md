@@ -99,7 +99,7 @@ H5는 H1~H4를 섞은 세트다. 글자 거리 0.75, 단어 자리 거리 0.86�
 - **마지막 줄에서 marked_v2가 0.66~0.69인 것도 영상 덕이 아니다.** 정답만 Train 원문 문체라서, 문체로 정답을 알아본 것이다. (inthon-93 측정으로는 baseline_v2도 이 세트에서 0.72다. 같은 이유다.)
 - epoch별로 봐도 경향은 같다. 초반 epoch가 낫지 않다.
 
-## 7. 리더보드 순서를 재현하는 검증 세트 (inthon-93 세션, `claude_val/README.md`)
+## 7. 리더보드 순서를 재현하는 검증 세트 (inthon-93 세션, `validator/README.md`)
 
 starter, minimal, baseline_v2, marked_v1을 서버 채점 방식대로 여러 세트에서 쟀다. **리더보드 순서(starter < 학습 모델들 < 거리 방식)를 재현하는 세트나 혼합은 없었다.**
 - 오답이 한 곳만 고친 세트: 거리 방식이 0.97 이상이다.
@@ -117,6 +117,23 @@ starter, minimal, baseline_v2, marked_v1을 서버 채점 방식대로 여러 �
   - 오답이 단어만 고친 구조라면 0.52를 넘는다.
   - 다시 쓴 구조라면 0.2~0.3으로 떨어진다(para_negs 0.17~0.33).
   - 점수 개선용이 아니라 test 구조를 가르는 실험이다.
+  - **결과 (2026-11-01): 리더보드 0.5661.** byte(0.52)보다 높다. span이 byte를 이기는 것은 여러 오답이 **긴 수정**(동작 덧붙이기, 구절 옮기기)을 공유할 때뿐이라, test는 단어 수정 오답이 수정을 공유하는 구조로 본다. 다시 쓴 문장 구조(para_negs)는 주된 구조가 아니다.
+
+## 9. 영상 판단기 (2026-11-01)
+
+거리 방식이 지는 곳은 수정을 여러 오답이 공유해 정답이 2~3위로 밀리는 에피소드다. 그 후보들은 수정 한 곳만 다르므로, 영상으로 그 순서만 정하면 된다. 평가는 `validator/`의 보정 검증기와 `validator/judges/`를 쓴다.
+
+- **SigLIP zero-shot**(`siglip_pairs.py`): 절을 프레임에 순서대로 맞춘다. 정답 vs 한 곳 수정 쌍에서 물체·속성 0.75~0.79, 동작 방향·순서 0.52~0.58.
+- **글 편향 제거**: 같은 문장을 Train 참조 영상 64개에 넣은 평균 점수를 뺀다. 다른 에피소드 영상을 넣으면 정확도가 0.5가 되어야 한다.
+- **학습 헤드**(`pair_head.py`): 동결 DINOv2+SigLIP 프레임 + SigLIP 절, Qwen 한 곳 수정 오답으로 학습. 다른 영상에서 정답과 오답 점수를 같게 하는 벌점으로 문장 지름길을 막는다.
+- **역재생 손실, 클립 이어 붙이기 손실**(Paxion, Test of Time 방식): 효과 없음. 프레임이 9~20장으로 띄엄띄엄이고, 물체가 나왔다 사라지는 클립이 많다.
+- **공간 헤드**(`patch_head.py`, `cache_patches.py`): DINOv2 패치 4×4 격자 + 직전 프레임과의 차이. 모든 수정 종류에서 기존 헤드보다 낫다(동작 0.60/0.66 → 0.64/0.75). 참조 영상 64개는 학습에서 뺀다(`--exclude`).
+
+span + 0.3 z(SigLIP) + 0.3 z(공간 헤드), 보정 검증기 반 B: full 0.710, short 0.821 (span 단독 0.576 / 0.560). 다른 영상을 넣으면 span 단독보다 낮아진다.
+
+- **생성기가 바뀌면 이득이 준다.** Claude가 쓴 {a, b, a+b, a+c}에서 0.635, 같은 구조의 Qwen 셀에서 0.767. 순위(공간 헤드 > 기존 헤드 > SigLIP만)는 그대로다.
+- **편향 제거 ablation** (`validator/judges/robust_eval.py`): SigLIP은 네 세트 모두에서 빼는 쪽이 낫다(+0.00~0.03). 공간 헤드는 잡음 범위(±0.015)지만 빼면 다른 영상 점수가 낮아진다(문장 의존이 줄어든다). 제출본은 둘 다 뺀다. **리더보드로는 아직 확인하지 않았다.**
+- 제출본: `submissions/video_judge_patch.zip` (543MB, `export_judge.py --head-type patch`). 서버 방식 점검(sentencepiece 없음, 오프라인)에서 실험 점수와 일치, 에피소드당 0.17초(A100).
 
 ## 파일
 
@@ -131,5 +148,8 @@ starter, minimal, baseline_v2, marked_v1을 서버 채점 방식대로 여러 �
 | `export_marked.py`, `submission_marked.py` | 제출 zip 생성과 서버 방식 점검 |
 | `submission_span.py` | 단어 자리 거리 제출 |
 | `vlm_probe.py` | SmolVLM zero-shot 실험 |
+| `siglip_pairs.py` | SigLIP zero-shot 쌍 판정 (수정 종류별, 다른 영상 대조) |
+| `pair_head.py`, `patch_head.py`, `cache_patches.py` | 학습 헤드(기존 / 공간)와 패치 캐시. `--rev`, `--concat`, `--exclude` |
+| `video_judge/`, `export_judge.py` | span + 영상 판단기 제출 코드와 zip 생성 |
 
 서버 실행 위치는 `~/Inthon_tk/diff_probe/runs/marked_v1`, `marked_v2`다. 결과 파일은 `eval_ckpts.json`(규칙 세트)과 `eval_qwen.json`(Qwen 세트)이다.

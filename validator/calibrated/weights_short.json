@@ -1,0 +1,23 @@
+{
+ "view": "short",
+ "weights": {
+  "single": 0.0,
+  "ab_ab_c": 0.35,
+  "ab_ab_ac": 0.65,
+  "share4": 0.0,
+  "para_negs": 0.0
+ },
+ "expected": {
+  "byte": 0.5399374783287101,
+  "span": 0.5648581975265834,
+  "word": 0.5444794194983819
+ },
+ "lb": {
+  "byte": 0.52,
+  "span": 0.566
+ },
+ "seed": 0,
+ "feasible": 9,
+ "tol": 0.02,
+ "step": 0.05
+}

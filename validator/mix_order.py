@@ -1,10 +1,10 @@
 """For each pair of cells (one-edit-per-negative S, shared-edit H) find mixing weights p
 (score = (1-p)*S + p*H) at which the submissions rank like the public LB.
 
-Reads claude_val/results*/NAME.json (eval_subs.py output, copied from the server) and
-claude_val/results/centrality.json.
+Reads validator/results*/NAME.json (eval_subs.py output, copied from the server) and
+validator/results/centrality.json.
 
-    python claude_val/mix_order.py
+    python validator/mix_order.py
 """
 
 import json

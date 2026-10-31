@@ -4,9 +4,9 @@ A set is a JSON list of {"episode", "choices": [{"type", "text"}, ...]} with the
 type "pos". Choices are shuffled per episode with a fixed seed and passed to
 Submission.predict(images, choices) the way the server does.
 
-    python claude_val/eval_subs.py --sets claude_val/sets/*.json \
-        --sub starter=baseline_v2/outputs/starter_submission --out claude_val/results/starter.json
-    python claude_val/eval_subs.py --sets claude_val/sets/*.json --centrality   # no GPU, no images
+    python validator/eval_subs.py --sets validator/sets/*.json \
+        --sub starter=baseline_v2/outputs/starter_submission --out validator/results/starter.json
+    python validator/eval_subs.py --sets validator/sets/*.json --centrality   # no GPU, no images
 """
 
 import argparse
